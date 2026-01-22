@@ -1,0 +1,233 @@
+-- Drop semua tabel jika ada
+DROP TABLE IF EXISTS activity_logs CASCADE;
+DROP TABLE IF EXISTS ticket_handlers CASCADE;
+DROP TABLE IF EXISTS tickets CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS team_members CASCADE;
+
+-- Tabel Users untuk login dengan role system
+CREATE TABLE users (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'team' CHECK (role IN ('admin', 'team', 'guest')),
+  full_name TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert admin default dan beberapa user contoh
+INSERT INTO users (username, password, role, full_name) VALUES
+  ('admin', '@Dwpwhy2003!', 'admin', 'Administrator'),
+  ('guest', 'guest123', 'guest', 'Guest User');
+
+-- Tabel Team Members
+CREATE TABLE team_members (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  username TEXT UNIQUE,
+  photo_url TEXT,
+  role TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Insert team members default
+INSERT INTO team_members (name, photo_url, role) VALUES
+  ('Dhany', 'https://ui-avatars.com/api/?name=Dhany&background=EF4444&color=fff&size=128', 'Support Engineer'),
+  ('Reka', 'https://ui-avatars.com/api/?name=Reka&background=3B82F6&color=fff&size=128', 'Support Engineer'),
+  ('Yoga', 'https://ui-avatars.com/api/?name=Yoga&background=10B981&color=fff&size=128', 'Support Engineer'),
+  ('Ade', 'https://ui-avatars.com/api/?name=Ade&background=F59E0B&color=fff&size=128', 'Support Engineer'),
+  ('Ferdinan', 'https://ui-avatars.com/api/?name=Ferdinan&background=8B5CF6&color=fff&size=128', 'Support Engineer');
+
+-- Tabel Tickets
+CREATE TABLE tickets (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  project_name TEXT NOT NULL,
+  sales_name TEXT,
+  customer_phone TEXT,
+  issue_case TEXT NOT NULL,
+  description TEXT,
+  assigned_to TEXT NOT NULL,
+  status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Process Action', 'Solved')),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  date DATE DEFAULT CURRENT_DATE
+);
+
+-- Tabel Activity Logs
+CREATE TABLE activity_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  ticket_id UUID REFERENCES tickets(id) ON DELETE CASCADE,
+  handler_name TEXT NOT NULL,
+  handler_username TEXT,
+  action_taken TEXT,
+  notes TEXT NOT NULL,
+  file_url TEXT,
+  file_name TEXT,
+  new_status TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tabel Ticket Handlers
+CREATE TABLE ticket_handlers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  ticket_id UUID REFERENCES tickets(id) ON DELETE CASCADE,
+  handler_name TEXT NOT NULL,
+  started_at TIMESTAMP DEFAULT NOW(),
+  ended_at TIMESTAMP
+);
+
+-- Indexes untuk performance
+CREATE INDEX idx_tickets_project ON tickets(project_name);
+CREATE INDEX idx_tickets_status ON tickets(status);
+CREATE INDEX idx_tickets_date ON tickets(date);
+CREATE INDEX idx_tickets_assigned ON tickets(assigned_to);
+CREATE INDEX idx_activity_ticket_id ON activity_logs(ticket_id);
+CREATE INDEX idx_handlers_ticket_id ON ticket_handlers(ticket_id);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_role ON users(role);
+
+-- Enable Row Level Security
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ticket_handlers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
+
+-- Policies - Allow all operations untuk semua user (bisa disesuaikan nanti)
+CREATE POLICY "Enable all for users" ON users
+  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Enable all for tickets" ON tickets
+  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Enable all for activity_logs" ON activity_logs
+  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Enable all for ticket_handlers" ON ticket_handlers
+  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Enable all for team_members" ON team_members
+  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+-- Update semua data existing di activity_logs ke timezone Jakarta
+UPDATE activity_logs 
+SET created_at = created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE created_at IS NOT NULL;
+
+-- Update semua data existing di tickets ke timezone Jakarta
+UPDATE tickets 
+SET created_at = created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta',
+    updated_at = updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE created_at IS NOT NULL;
+
+-- Update ticket_handlers ke timezone Jakarta
+UPDATE ticket_handlers 
+SET started_at = started_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE started_at IS NOT NULL;
+
+UPDATE ticket_handlers 
+SET ended_at = ended_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE ended_at IS NOT NULL;
+
+-- Function untuk auto-update timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger untuk auto-update updated_at pada tickets
+CREATE TRIGGER update_tickets_updated_at 
+    BEFORE UPDATE ON tickets 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- View untuk melihat statistik tickets per handler
+CREATE OR REPLACE VIEW ticket_stats_by_handler AS
+SELECT 
+    assigned_to,
+    COUNT(*) as total_tickets,
+    COUNT(*) FILTER (WHERE status = 'Pending') as pending_count,
+    COUNT(*) FILTER (WHERE status = 'Process Action') as process_count,
+    COUNT(*) FILTER (WHERE status = 'Solved') as solved_count
+FROM tickets
+GROUP BY assigned_to
+ORDER BY total_tickets DESC;
+
+-- View untuk melihat tickets yang perlu notifikasi (Pending atau Process Action)
+CREATE OR REPLACE VIEW notification_tickets AS
+SELECT 
+    t.id,
+    t.project_name,
+    t.issue_case,
+    t.assigned_to,
+    t.status,
+    t.created_at,
+    t.date,
+    COUNT(al.id) as activity_count
+FROM tickets t
+LEFT JOIN activity_logs al ON t.id = al.ticket_id
+WHERE t.status IN ('Pending', 'Process Action')
+GROUP BY t.id, t.project_name, t.issue_case, t.assigned_to, t.status, t.created_at, t.date
+ORDER BY t.created_at DESC;
+
+-- Comments untuk dokumentasi
+COMMENT ON TABLE users IS 'Tabel untuk menyimpan data user dengan role-based access';
+COMMENT ON TABLE tickets IS 'Tabel untuk menyimpan data ticket troubleshooting';
+COMMENT ON TABLE activity_logs IS 'Tabel untuk menyimpan history aktivitas pada setiap ticket';
+COMMENT ON TABLE team_members IS 'Tabel untuk menyimpan data team members';
+COMMENT ON COLUMN users.role IS 'Role: admin (full access), team (full access kecuali settings), guest (read only)';
+COMMENT ON COLUMN tickets.status IS 'Status: Pending, Process Action, atau Solved';
+
+  -- Update semua data existing di activity_logs
+UPDATE activity_logs 
+SET created_at = created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE created_at IS NOT NULL;
+
+-- Update semua data existing di tickets
+UPDATE tickets 
+SET created_at = created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta',
+    updated_at = updated_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE created_at IS NOT NULL;
+
+-- Update ticket_handlers
+UPDATE ticket_handlers 
+SET started_at = started_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE started_at IS NOT NULL;
+
+UPDATE ticket_handlers 
+SET ended_at = ended_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta'
+WHERE ended_at IS NOT NULL;
+
+
+-- Mapping Guest = Project
+CREATE TABLE IF NOT EXISTS guest_mappings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  guest_username TEXT NOT NULL,
+  customer_username TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(guest_username, customer_username)
+);
+
+CREATE INDEX IF NOT EXISTS idx_guest_mappings_guest 
+  ON guest_mappings(guest_username);
+CREATE INDEX IF NOT EXISTS idx_guest_mappings_customer 
+  ON guest_mappings(customer_username);
+
+-- Drop tabel lama jika ada
+DROP TABLE IF EXISTS guest_mappings;
+
+-- Buat tabel baru dengan struktur yang benar
+CREATE TABLE guest_mappings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  guest_username TEXT NOT NULL,
+  project_name TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(guest_username, project_name)
+);
+
+-- Index untuk performa
+CREATE INDEX idx_guest_mappings_guest ON guest_mappings(guest_username);
+CREATE INDEX idx_guest_mappings_project ON guest_mappings(project_name);

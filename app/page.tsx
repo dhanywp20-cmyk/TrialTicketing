@@ -808,7 +808,6 @@ export default function TicketingSystem() {
     );
   }
 
-
   return (
     <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
       {showLoadingPopup && (
@@ -831,7 +830,7 @@ export default function TicketingSystem() {
           <div className="h-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
         </div>
       )}
-
+      
       <div className="max-w-7xl mx-auto">
         {showGuestMapping && canAccessAccountSettings && (
 
@@ -1907,4 +1906,5 @@ export default function TicketingSystem() {
             </div>
           </div>
         )}
+
 

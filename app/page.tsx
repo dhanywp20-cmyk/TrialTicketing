@@ -808,6 +808,7 @@ export default function TicketingSystem() {
     );
   }
 
+
   return (
     <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
       {showLoadingPopup && (
@@ -819,6 +820,20 @@ export default function TicketingSystem() {
               ) : (
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
               )}
+              <p className="text-xl font-bold text-gray-800 text-center">{loadingMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {uploading && !showLoadingPopup && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+          <div className="h-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto">
+        {showGuestMapping && canAccessAccountSettings && (
 
         {showGuestMapping && canAccessAccountSettings && (
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-teal-500 animate-slide-down">
@@ -1892,3 +1907,4 @@ export default function TicketingSystem() {
             </div>
           </div>
         )}
+

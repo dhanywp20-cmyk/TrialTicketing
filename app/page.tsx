@@ -756,7 +756,7 @@ export default function TicketingSystem() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/LoadingScreen.jpg)' }}>
         <div className="bg-white/90 p-8 rounded-2xl shadow-2xl">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mx-auto"></div>
           <p className="mt-4 font-bold">Loading...</p>
@@ -767,7 +767,7 @@ export default function TicketingSystem() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/LoadingScreen.jpg)' }}>
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border-4 border-red-600">
           <h1 className="text-3xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">
             Login
@@ -809,7 +809,7 @@ export default function TicketingSystem() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/images/LoadingScreen.jpg)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
@@ -878,12 +878,19 @@ export default function TicketingSystem() {
                       >
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
-                            <p className="font-bold text-lg text-gray-800">{ticket.project_name}</p>
+                            <div className="flex items-center gap-2 mb-2">
+                              <p className="font-bold text-lg text-gray-800">{ticket.project_name}</p>
+                              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">
+                                {ticket.current_team}
+                              </span>
+                            </div>
                             <p className="text-sm text-gray-600 mt-1">{ticket.issue_case}</p>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.status]} ml-3`}>
-                            {ticket.status}
-                          </span>
+                          <div className="ml-3 flex flex-col gap-1">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}>
+                              {currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex justify-between items-center pt-3 border-t border-gray-300">
                           <span className="text-xs text-gray-500">
@@ -905,6 +912,324 @@ export default function TicketingSystem() {
                   Tutup
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {showNotificationPopup && notifications.length > 0 && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-4 border-yellow-500 animate-scale-in">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-4xl">🔔</span>
+                <h3 className="text-xl font-bold text-gray-800">Notifikasi Ticket</h3>
+              </div>
+              <p className="text-gray-700 mb-4">
+                Anda memiliki <strong className="text-red-600">{notifications.length}</strong> ticket yang perlu ditangani:
+              </p>
+              <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
+                {notifications.map(ticket => (
+                  <div key={ticket.id} className={`p-3 rounded-lg border-2 ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-bold text-sm flex-1">{ticket.project_name}</p>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">
+                        {ticket.current_team}
+                      </span>
+                    </div>
+                    <p className="text-xs">{ticket.issue_case}</p>
+                    <span className="text-xs font-semibold">{currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowNotificationPopup(false)}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl hover:from-blue-700 hover:to-blue-900 font-bold"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-4 border-red-600">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800 mb-1">
+                📋 Reminder Troubleshooting
+              </h1>
+              <p className="text-gray-800 font-bold text-lg">PTS IVP</p>
+              <p className="text-sm text-gray-600">
+                Welcome: <span className="font-bold text-red-600">{currentUser?.full_name}</span>
+                <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-bold">
+                  {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'team' ? `Team - ${currentUserTeamType}` : 'Guest'}
+                </span>
+              </p>
+            </div>
+            <div className="flex gap-3 flex-wrap items-center">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-3 rounded-xl hover:from-yellow-600 hover:to-yellow-700 font-bold shadow-lg transition-all"
+                title="Notifikasi"
+              >
+                🔔
+                {notifications.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
+                    {notifications.length}
+                  </span>
+                )}
+              </button>
+
+              {canAccessAccountSettings && (
+                <button 
+                  onClick={() => {
+                    setShowAccountSettings(!showAccountSettings);
+                    setShowGuestMapping(false);
+                    setShowDashboard(false);
+                    setShowNewTicket(false);
+                  }} 
+                  className="btn-secondary"
+                >
+                  ⚙️ Account
+                </button>
+              )}
+              {canAccessAccountSettings && (
+                <button 
+                  onClick={() => {
+                    setShowGuestMapping(!showGuestMapping);
+                    setShowAccountSettings(false);
+                    setShowDashboard(false);
+                    setShowNewTicket(false);
+                  }} 
+                  className="btn-teal"
+                >
+                  👥 Guest Mapping
+                </button>
+              )}
+              {currentUser?.role !== 'guest' && (
+                <button 
+                  onClick={() => {
+                    setShowDashboard(!showDashboard);
+                    setShowAccountSettings(false);
+                    setShowGuestMapping(false);
+                    setShowNewTicket(false);
+                  }} 
+                  className="btn-purple"
+                >
+                  📊 Dashboard
+                </button>
+              )}
+              {canCreateTicket && (
+                <button 
+                  onClick={() => {
+                    setShowNewTicket(!showNewTicket);
+                    setShowAccountSettings(false);
+                    setShowGuestMapping(false);
+                    setShowDashboard(false);
+                  }} 
+                  className="btn-primary"
+                >
+                  + Ticket Baru
+                </button>
+              )}
+              <button onClick={handleLogout} className="btn-danger">
+                🚶 Logout
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {showAccountSettings && canAccessAccountSettings && (
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-gray-500 animate-slide-down">
+            <h2 className="text-2xl font-bold mb-4">⚙️ Account Settings</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-blue-50 rounded-xl p-5 border-3 border-blue-300">
+                <h3 className="font-bold mb-3">Buat Account Team</h3>
+                <div className="space-y-3">
+                  <input type="text" placeholder="Username" value={newUser.username} onChange={(e) => setNewUser({...newUser, username: e.target.value})} className="input-field" />
+                  <input type="password" placeholder="Password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} className="input-field" />
+                  <input type="text" placeholder="Nama Lengkap" value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} className="input-field" />
+                  <select value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})} className="input-field">
+                    <option value="admin">Administrator</option>
+                    <option value="team">Team</option>
+                    <option value="guest">Guest</option>
+                  </select>
+                  <select value={newUser.team_type} onChange={(e) => setNewUser({...newUser, team_type: e.target.value})} className="input-field">
+                    <option value="Team PTS">Team PTS</option>
+                    <option value="Team Services">Team Services</option>
+                  </select>
+                  <select value={newUser.team_member} onChange={(e) => setNewUser({...newUser, team_member: e.target.value})} className="input-field">
+                    <option value="">Pilih Team Member (Opsional)</option>
+                    {teamMembers.map(m => <option key={m.id} value={m.name}>{m.name} ({m.team_type})</option>)}
+                  </select>
+                  <button onClick={createUser} className="btn-primary w-full">
+                    ➕ Buat Account
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-orange-50 rounded-xl p-5 border-3 border-orange-300">
+                <h3 className="font-bold mb-3">Ubah Password</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">Pilih User yang akan diubah passwordnya</label>
+                    <select 
+                      value={selectedUserForPassword} 
+                      onChange={(e) => {
+                        setSelectedUserForPassword(e.target.value);
+                        setChangePassword({ current: '', new: '', confirm: '' });
+                      }} 
+                      className="input-field"
+                    >
+                      <option value="">-- Pilih User Dahulu --</option>
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.full_name} (@{u.username})</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {selectedUserForPassword && (
+                    <>
+                      <input type="password" placeholder="Password Lama" value={changePassword.current} onChange={(e) => setChangePassword({...changePassword, current: e.target.value})} className="input-field" />
+                      <input type="password" placeholder="Password Baru" value={changePassword.new} onChange={(e) => setChangePassword({...changePassword, new: e.target.value})} className="input-field" />
+                      <input type="password" placeholder="Konfirmasi Password" value={changePassword.confirm} onChange={(e) => setChangePassword({...changePassword, confirm: e.target.value})} className="input-field" />
+                      <button onClick={updatePassword} className="btn-primary w-full">
+                        🔒 Ubah Password
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 bg-gray-50 rounded-xl p-5 border-3 border-gray-300">
+              <h3 className="font-bold mb-3">Daftar User</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {users.map(u => (
+                  <div key={u.id} className="bg-white rounded-xl p-3 border-2 border-gray-300">
+                    <p className="font-bold text-sm">{u.full_name}</p>
+                    <p className="text-xs text-gray-600">@{u.username}</p>
+                    <div className="flex flex-col gap-1 mt-1">
+                      <span className={`text-xs px-2 py-1 rounded text-center ${
+                        u.role === 'admin' ? 'bg-red-100 text-red-800' : 
+                        u.role === 'team' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {u.role === 'admin' ? 'Admin' : u.role === 'team' ? 'Team' : 'Guest'}
+                      </span>
+                      {u.team_type && (
+                        <span className="text-xs px-2 py-1 rounded text-center bg-purple-100 text-purple-800">
+                          {u.team_type}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showGuestMapping && canAccessAccountSettings && (
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-teal-500 animate-slide-down">
+            <h2 className="text-2xl font-bold mb-4 text-teal-800">👥 Guest Mapping - Akses Project</h2>
+            <p className="text-gray-600 mb-6">Kelola akses guest user ke project tertentu. Satu guest bisa memiliki akses ke beberapa project.</p>
+            
+            <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border-3 border-teal-300 mb-6">
+              <h3 className="font-bold mb-4 text-lg text-teal-900">➕ Tambah Mapping Baru</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">Username Guest</label>
+                  <select 
+                    value={newMapping.guestUsername} 
+                    onChange={(e) => setNewMapping({...newMapping, guestUsername: e.target.value})} 
+                    className="input-field"
+                  >
+                    <option value="">Pilih Guest User</option>
+                    {users.filter(u => u.role === 'guest').map(u => (
+                      <option key={u.id} value={u.username}>{u.username} - {u.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">Nama Project</label>
+                  <select 
+                    value={newMapping.projectName} 
+                    onChange={(e) => setNewMapping({...newMapping, projectName: e.target.value})} 
+                    className="input-field"
+                  >
+                    <option value="">Pilih Nama Project</option>
+                    {uniqueProjectNames.map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <button onClick={addGuestMapping} disabled={uploading} className="w-full bg-gradient-to-r from-teal-600 to-teal-800 text-white px-6 py-3 rounded-xl hover:from-teal-700 hover:to-teal-900 font-bold shadow-xl transition-all disabled:opacity-50">
+                {uploading ? '⏳ Memproses...' : '➕ Tambah Mapping'}
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border-3 border-gray-300 shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg text-gray-800">📋 Daftar Mapping</h3>
+                <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-bold">
+                  {guestMappings.length} mapping
+                </span>
+              </div>
+              
+              {guestMappings.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🔭</div>
+                  <p className="text-gray-500 font-medium">Belum ada mapping</p>
+                  <p className="text-sm text-gray-400 mt-2">Tambahkan mapping untuk memberikan akses guest ke project</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {guestMappings.map(mapping => (
+                    <div key={mapping.id} className="flex justify-between items-center p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-xl border-2 border-teal-200 hover:shadow-md transition-all">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-lg text-sm font-bold">
+                            👤 {mapping.guest_username}
+                          </span>
+                          <span className="text-gray-400 font-bold">→</span>
+                          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg text-sm font-bold">
+                            🏢 {mapping.project_name}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Dibuat: {new Date(mapping.created_at).toLocaleDateString('id-ID', { 
+                            day: '2-digit', 
+                            month: 'long', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => deleteGuestMapping(mapping.id)}
+                        disabled={uploading}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition-all disabled:opacity-50 ml-4 hover:scale-105"
+                      >
+                        🗑️ Hapus
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
+              <h4 className="font-bold text-sm text-blue-900 mb-2">ℹ️ Informasi</h4>
+              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                <li>Guest user hanya bisa melihat ticket dari project yang sudah dimapping</li>
+                <li>Satu guest bisa memiliki akses ke beberapa project berbeda</li>
+                <li>Guest tidak bisa membuat atau mengupdate ticket</li>
+                <li>Hapus mapping untuk mencabut akses guest ke project tertentu</li>
+              </ul>
             </div>
           </div>
         )}
@@ -1567,315 +1892,3 @@ export default function TicketingSystem() {
     </div>
   );
 }
-              <p className="text-xl font-bold text-gray-800 text-center">{loadingMessage}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {uploading && !showLoadingPopup && (
-        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-          <div className="h-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto">
-        {showNotifications && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-scale-in">
-              <div className="p-6 border-b-2 border-gray-200 bg-gradient-to-r from-yellow-400 to-yellow-500">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">🔔</span>
-                    <div>
-                      <h3 className="text-xl font-bold text-white">Notifikasi Ticket</h3>
-                      {notifications.length > 0 && (
-                        <p className="text-sm text-white/90">
-                          {notifications.length} ticket perlu ditangani
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => setShowNotifications(false)}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 font-bold transition-all"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-              
-              {notifications.length === 0 ? (
-                <div className="p-12 text-center text-gray-500">
-                  <div className="text-6xl mb-4">✅</div>
-                  <p className="text-lg font-medium">Tidak ada notifikasi</p>
-                  <p className="text-sm mt-2">Semua ticket sudah ditangani</p>
-                </div>
-              ) : (
-                <div className="max-h-[calc(80vh-120px)] overflow-y-auto p-4">
-                  <div className="space-y-3">
-                    {notifications.map(ticket => (
-                      <div
-                        key={ticket.id}
-                        onClick={() => {
-                          setSelectedTicket(ticket);
-                          setShowNotifications(false);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-300 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <p className="font-bold text-lg text-gray-800">{ticket.project_name}</p>
-                              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">
-                                {ticket.current_team}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">{ticket.issue_case}</p>
-                          </div>
-                          <div className="ml-3 flex flex-col gap-1">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}>
-                              {currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center pt-3 border-t border-gray-300">
-                          <span className="text-xs text-gray-500">
-                            📅 {new Date(ticket.created_at).toLocaleDateString('id-ID')}
-                          </span>
-                          <span className="text-sm text-blue-600 font-semibold">Klik untuk lihat detail →</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className="p-4 border-t-2 border-gray-200 bg-gray-50">
-                <button
-                  onClick={() => setShowNotifications(false)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl hover:from-blue-700 hover:to-blue-900 font-bold transition-all"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showNotificationPopup && notifications.length > 0 && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-4 border-yellow-500 animate-scale-in">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-4xl">🔔</span>
-                <h3 className="text-xl font-bold text-gray-800">Notifikasi Ticket</h3>
-              </div>
-              <p className="text-gray-700 mb-4">
-                Anda memiliki <strong className="text-red-600">{notifications.length}</strong> ticket yang perlu ditangani:
-              </p>
-              <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
-                {notifications.map(ticket => (
-                  <div key={ticket.id} className={`p-3 rounded-lg border-2 ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-bold text-sm flex-1">{ticket.project_name}</p>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">
-                        {ticket.current_team}
-                      </span>
-                    </div>
-                    <p className="text-xs">{ticket.issue_case}</p>
-                    <span className="text-xs font-semibold">{currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}</span>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={() => setShowNotificationPopup(false)}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl hover:from-blue-700 hover:to-blue-900 font-bold"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-4 border-red-600">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800 mb-1">
-                📋 Reminder Troubleshooting
-              </h1>
-              <p className="text-gray-800 font-bold text-lg">PTS IVP</p>
-              <p className="text-sm text-gray-600">
-                Welcome: <span className="font-bold text-red-600">{currentUser?.full_name}</span>
-                <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-bold">
-                  {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'team' ? `Team - ${currentUserTeamType}` : 'Guest'}
-                </span>
-              </p>
-            </div>
-            <div className="flex gap-3 flex-wrap items-center">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-3 rounded-xl hover:from-yellow-600 hover:to-yellow-700 font-bold shadow-lg transition-all"
-                title="Notifikasi"
-              >
-                🔔
-                {notifications.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-pulse">
-                    {notifications.length}
-                  </span>
-                )}
-              </button>
-
-              {canAccessAccountSettings && (
-                <button 
-                  onClick={() => {
-                    setShowAccountSettings(!showAccountSettings);
-                    setShowGuestMapping(false);
-                    setShowDashboard(false);
-                    setShowNewTicket(false);
-                  }} 
-                  className="btn-secondary"
-                >
-                  ⚙️ Account
-                </button>
-              )}
-              {canAccessAccountSettings && (
-                <button 
-                  onClick={() => {
-                    setShowGuestMapping(!showGuestMapping);
-                    setShowAccountSettings(false);
-                    setShowDashboard(false);
-                    setShowNewTicket(false);
-                  }} 
-                  className="btn-teal"
-                >
-                  👥 Guest Mapping
-                </button>
-              )}
-              {currentUser?.role !== 'guest' && (
-                <button 
-                  onClick={() => {
-                    setShowDashboard(!showDashboard);
-                    setShowAccountSettings(false);
-                    setShowGuestMapping(false);
-                    setShowNewTicket(false);
-                  }} 
-                  className="btn-purple"
-                >
-                  📊 Dashboard
-                </button>
-              )}
-              {canCreateTicket && (
-                <button 
-                  onClick={() => {
-                    setShowNewTicket(!showNewTicket);
-                    setShowAccountSettings(false);
-                    setShowGuestMapping(false);
-                    setShowDashboard(false);
-                  }} 
-                  className="btn-primary"
-                >
-                  + Ticket Baru
-                </button>
-              )}
-              <button onClick={handleLogout} className="btn-danger">
-                🚶 Logout
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {showAccountSettings && canAccessAccountSettings && (
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-gray-500 animate-slide-down">
-            <h2 className="text-2xl font-bold mb-4">⚙️ Account Settings</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-blue-50 rounded-xl p-5 border-3 border-blue-300">
-                <h3 className="font-bold mb-3">Buat Account Team</h3>
-                <div className="space-y-3">
-                  <input type="text" placeholder="Username" value={newUser.username} onChange={(e) => setNewUser({...newUser, username: e.target.value})} className="input-field" />
-                  <input type="password" placeholder="Password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} className="input-field" />
-                  <input type="text" placeholder="Nama Lengkap" value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} className="input-field" />
-                  <select value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})} className="input-field">
-                    <option value="admin">Administrator</option>
-                    <option value="team">Team</option>
-                    <option value="guest">Guest</option>
-                  </select>
-                  <select value={newUser.team_type} onChange={(e) => setNewUser({...newUser, team_type: e.target.value})} className="input-field">
-                    <option value="Team PTS">Team PTS</option>
-                    <option value="Team Services">Team Services</option>
-                  </select>
-                  <select value={newUser.team_member} onChange={(e) => setNewUser({...newUser, team_member: e.target.value})} className="input-field">
-                    <option value="">Pilih Team Member (Opsional)</option>
-                    {teamMembers.map(m => <option key={m.id} value={m.name}>{m.name} ({m.team_type})</option>)}
-                  </select>
-                  <button onClick={createUser} className="btn-primary w-full">
-                    ➕ Buat Account
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-orange-50 rounded-xl p-5 border-3 border-orange-300">
-                <h3 className="font-bold mb-3">Ubah Password</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">Pilih User yang akan diubah passwordnya</label>
-                    <select 
-                      value={selectedUserForPassword} 
-                      onChange={(e) => {
-                        setSelectedUserForPassword(e.target.value);
-                        setChangePassword({ current: '', new: '', confirm: '' });
-                      }} 
-                      className="input-field"
-                    >
-                      <option value="">-- Pilih User Dahulu --</option>
-                      {users.map(u => (
-                        <option key={u.id} value={u.id}>{u.full_name} (@{u.username})</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {selectedUserForPassword && (
-                    <>
-                      <input type="password" placeholder="Password Lama" value={changePassword.current} onChange={(e) => setChangePassword({...changePassword, current: e.target.value})} className="input-field" />
-                      <input type="password" placeholder="Password Baru" value={changePassword.new} onChange={(e) => setChangePassword({...changePassword, new: e.target.value})} className="input-field" />
-                      <input type="password" placeholder="Konfirmasi Password" value={changePassword.confirm} onChange={(e) => setChangePassword({...changePassword, confirm: e.target.value})} className="input-field" />
-                      <button onClick={updatePassword} className="btn-primary w-full">
-                        🔒 Ubah Password
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-gray-50 rounded-xl p-5 border-3 border-gray-300">
-              <h3 className="font-bold mb-3">Daftar User</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {users.map(u => (
-                  <div key={u.id} className="bg-white rounded-xl p-3 border-2 border-gray-300">
-                    <p className="font-bold text-sm">{u.full_name}</p>
-                    <p className="text-xs text-gray-600">@{u.username}</p>
-                    <div className="flex flex-col gap-1 mt-1">
-                      <span className={`text-xs px-2 py-1 rounded text-center ${
-                        u.role === 'admin' ? 'bg-red-100 text-red-800' : 
-                        u.role === 'team' ? 'bg-blue-100 text-blue-800' : 
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {u.role === 'admin' ? 'Admin' : u.role === 'team' ? 'Team' : 'Guest'}
-                      </span>
-                      {u.team_type && (
-                        <span className="text-xs px-2 py-1 rounded text-center bg-purple-100 text-purple-800">
-                          {u.team_type}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-
-

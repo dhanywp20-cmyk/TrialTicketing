@@ -393,48 +393,109 @@ export default function TicketingSystem() {
 
       if (newActivity.file) {
         setLoadingMessage('Uploading PDF file...');
-        const result = await uploadFile(newActivity.file, 'reports');
-        fileUrl = result.url;
-        fileName = result.name;
+        try {
+          const result = await uploadFile(newActivity.file, 'reports');
+          fileUrl = result.url;
+          fileName = result.name;
+        } catch (uploadErr: any) {
+          console.error('File upload error:', uploadErr);
+          throw new Error(`Failed to upload PDF: ${uploadErr.message}`);
+        }
       }
 
       if (newActivity.photo) {
         setLoadingMessage('Uploading photo...');
-        const result = await uploadFile(newActivity.photo, 'photos');
-        photoUrl = result.url;
-        photoName = result.name;
+        try {
+          const result = await uploadFile(newActivity.photo, 'photos');
+          photoUrl = result.url;
+          photoName = result.name;
+        } catch (uploadErr: any) {
+          console.error('Photo upload error:', uploadErr);
+          throw new Error(`Failed to upload photo: ${uploadErr.message}`);
+        }
       }
 
       const member = teamMembers.find(m => m.username === currentUser?.username);
       const teamType = member?.team_type || 'Team PTS';
 
-      // Insert activity log with proper error handling for RLS policy
-      const activityData = {
+      setLoadingMessage('Saving activity log...');
+
+      // Prepare activity data with all required fields
+      const activityData: any = {
         ticket_id: selectedTicket.id,
         handler_name: newActivity.handler_name,
-        handler_username: currentUser?.username,
-        action_taken: newActivity.action_taken || null,
+        handler_username: currentUser?.username || '',
+        action_taken: newActivity.action_taken || '',
         notes: newActivity.notes,
         new_status: newActivity.new_status,
         team_type: teamType,
-        assigned_to_services: newActivity.assign_to_services,
-        file_url: fileUrl || null,
-        file_name: fileName || null,
-        photo_url: photoUrl || null,
-        photo_name: photoName || null
+        assigned_to_services: newActivity.assign_to_services || false,
+        file_url: fileUrl || '',
+        file_name: fileName || '',
+        photo_url: photoUrl || '',
+        photo_name: photoName || ''
       };
 
-      const { error: activityError } = await supabase.from('activity_logs').insert([activityData]);
+      // Try to insert activity log
+      const { data: insertedActivity, error: activityError } = await supabase
+        .from('activity_logs')
+        .insert([activityData])
+        .select();
       
       if (activityError) {
         console.error('Activity log insert error:', activityError);
+        console.error('Error details:', {
+          code: activityError.code,
+          message: activityError.message,
+          details: activityError.details,
+          hint: activityError.hint
+        });
+        
         // Check if it's an RLS policy error
-        if (activityError.message.includes('row-level security') || activityError.code === '42501') {
-          throw new Error('Permission denied: Please contact administrator to enable activity logging permissions for your account.');
+        if (activityError.message.includes('row-level security') || 
+            activityError.message.includes('policy') ||
+            activityError.code === '42501' ||
+            activityError.code === 'PGRST301') {
+          
+          const errorMsg = `❌ DATABASE PERMISSION ERROR (RLS Policy)
+
+Tabel 'activity_logs' memiliki Row-Level Security (RLS) policy yang memblokir insert data.
+
+SOLUSI UNTUK ADMINISTRATOR SUPABASE:
+1. Buka Supabase Dashboard → Authentication → Policies
+2. Pilih tabel 'activity_logs'
+3. Tambahkan policy baru untuk INSERT:
+
+   Policy Name: "Allow insert activity logs"
+   Policy Command: INSERT
+   Target Roles: public (atau authenticated)
+   USING expression: true
+   WITH CHECK expression: true
+
+SQL Command (jalankan di SQL Editor):
+CREATE POLICY "Allow insert activity logs"
+ON activity_logs FOR INSERT
+TO public
+WITH CHECK (true);
+
+-- Atau untuk authenticated users only:
+CREATE POLICY "Allow authenticated insert activity logs"
+ON activity_logs FOR INSERT
+TO authenticated
+WITH CHECK (true);
+
+Error Detail: ${activityError.message}
+Error Code: ${activityError.code}`;
+
+          throw new Error(errorMsg);
         }
-        throw activityError;
+        
+        throw new Error(`Database error: ${activityError.message}`);
       }
 
+      setLoadingMessage('Updating ticket status...');
+
+      // Update ticket status
       const updateData: any = {};
       
       if (teamType === 'Team PTS') {
@@ -455,7 +516,7 @@ export default function TicketingSystem() {
 
       if (updateError) {
         console.error('Ticket update error:', updateError);
-        throw updateError;
+        throw new Error(`Failed to update ticket: ${updateError.message}`);
       }
 
       setNewActivity({
@@ -480,7 +541,13 @@ export default function TicketingSystem() {
     } catch (err: any) {
       setShowLoadingPopup(false);
       setUploading(false);
-      alert('Error: ' + err.message);
+      
+      // Show detailed error message
+      if (err.message.includes('RLS Policy') || err.message.includes('PERMISSION ERROR')) {
+        alert(err.message);
+      } else {
+        alert('Error: ' + err.message);
+      }
     }
   };
 
@@ -538,7 +605,13 @@ export default function TicketingSystem() {
         project_name: newMapping.projectName
       }]);
 
-      if (error) throw error;
+      if (error) {
+        // Check for RLS error on guest_mappings
+        if (error.message.includes('row-level security') || error.code === '42501') {
+          throw new Error(`RLS Policy Error: Guest mappings table requires proper permissions. Contact administrator to enable INSERT policy for guest_mappings table.`);
+        }
+        throw error;
+      }
 
       setNewMapping({ guestUsername: '', projectName: '' });
       await fetchGuestMappings();
@@ -786,7 +859,7 @@ export default function TicketingSystem() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
         <div className="bg-white/90 p-8 rounded-2xl shadow-2xl">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mx-auto"></div>
           <p className="mt-4 font-bold">Loading...</p>
@@ -797,7 +870,7 @@ export default function TicketingSystem() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border-4 border-red-600">
           <h1 className="text-3xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">
             Login
@@ -839,7 +912,7 @@ export default function TicketingSystem() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">

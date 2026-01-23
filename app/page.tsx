@@ -334,6 +334,7 @@ export default function TicketingSystem() {
 
       setNewTicket({
         project_name: '',
+        address: '',
         customer_phone: '',
         sales_name: '',
         sn_unit: '',
@@ -759,19 +760,18 @@ Error Code: ${activityError.code}`;
         </head>
         <body>
           <h1>Ticket Report</h1>
-          <h2><th>Project Name : </th>${ticket.project_name}</h2>
+          <h2><th>Project Name :</th>${ticket.project_name}</h2>
           <table>
-			<tr><th>Address :</th><td>${ticket.address}</td></tr>
             <tr><th>Issue :</th><td>${ticket.issue_case}</td></tr>
             <tr><th>SN Unit :</th><td>${ticket.sn_unit || '-'}</td></tr>
             <tr><th>Name & Phone User :</th><td>${ticket.customer_phone || '-'}</td></tr>
             <tr><th>Sales Project :</th><td>${ticket.sales_name || '-'}</td></tr>
-            <tr><th>Team PTS Status :</th><td>${ticket.status}</td></tr>
-            ${ticket.services_status ? `<tr><th>Team Services Status :</th><td>${ticket.services_status}</td></tr>` : ''}
-            <tr><th>Current Team</th><td>${ticket.current_team}</td></tr>
-            <tr><th>Date</th><td>${ticket.date}</td></tr>
+            <tr><th>Status Team PTS :</th><td>${ticket.status}</td></tr>
+            ${ticket.services_status ? `<tr><th>Status Team Services :</th><td>${ticket.services_status}</td></tr>` : ''}
+            <tr><th>Current Team :</th><td>${ticket.current_team}</td></tr>
+            <tr><th>Date :</th><td>${ticket.date}</td></tr>
           </table>
-          <h3>Activity Log</h3>
+          <h3>Activity Log :</h3>
           ${ticket.activity_logs?.map(log => `
             <div class="activity">
               <strong>${log.handler_name}</strong> <span class="team-badge">${log.team_type}</span> - ${formatDateTime(log.created_at)}<br/>

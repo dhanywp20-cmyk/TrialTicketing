@@ -153,7 +153,7 @@ export default function TicketingSystem() {
       
       if (now - loginTime > sixHours) {
         handleLogout();
-        alert('Sesi Anda telah berakhir. Silakan login kembali.');
+        alert('Your session has expired. Please login again.');
       }
     }
   };
@@ -207,7 +207,7 @@ export default function TicketingSystem() {
         .single();
 
       if (error || !data) {
-        alert('Username atau password salah!');
+        alert('Incorrect username or password!');
         return;
       }
 
@@ -218,7 +218,7 @@ export default function TicketingSystem() {
       localStorage.setItem('currentUser', JSON.stringify(data));
       localStorage.setItem('loginTime', now.toString());
     } catch (err) {
-      alert('Login gagal!');
+      alert('Login failed!');
     }
   };
 
@@ -291,20 +291,20 @@ export default function TicketingSystem() {
 
   const createTicket = async () => {
     if (!newTicket.project_name || !newTicket.issue_case || !newTicket.assigned_to) {
-      alert('Project name, Issue case, dan Assigned to harus diisi!');
+      alert('Project name, Issue case, and Assigned to must be filled!');
       return;
     }
 
     const validStatuses = ['Pending', 'In Progress', 'Solved'];
     if (!validStatuses.includes(newTicket.status)) {
-      alert('Status tidak valid! Gunakan: Pending, In Progress, atau Solved');
+      alert('Invalid status! Use: Pending, In Progress, or Solved');
       return;
     }
 
     try {
       setUploading(true);
       setShowLoadingPopup(true);
-      setLoadingMessage('Menyimpan ticket baru...');
+      setLoadingMessage('Saving new ticket...');
       
       const ticketData = {
         project_name: newTicket.project_name,
@@ -341,7 +341,7 @@ export default function TicketingSystem() {
       
       await fetchData();
       
-      setLoadingMessage('✅ Ticket berhasil disimpan!');
+      setLoadingMessage('✅ Ticket saved successfully!');
       setTimeout(() => {
         setShowLoadingPopup(false);
         setUploading(false);
@@ -367,31 +367,31 @@ export default function TicketingSystem() {
 
   const addActivity = async () => {
     if (!newActivity.notes || !selectedTicket) {
-      alert('Notes harus diisi!');
+      alert('Notes must be filled!');
       return;
     }
 
     const validStatuses = ['Pending', 'In Progress', 'Solved'];
     if (!validStatuses.includes(newActivity.new_status)) {
-      alert('Status tidak valid! Gunakan: Pending, In Progress, atau Solved');
+      alert('Invalid status! Use: Pending, In Progress, or Solved');
       return;
     }
 
     if (newActivity.assign_to_services && !newActivity.services_assignee) {
-      alert('Pilih assignee dari Team Services!');
+      alert('Select assignee from Team Services!');
       return;
     }
 
     try {
       setUploading(true);
       setShowLoadingPopup(true);
-      setLoadingMessage('Mengupdate status ticket...');
+      setLoadingMessage('Updating ticket status...');
       
       let fileUrl = '';
       let fileName = '';
 
       if (newActivity.file) {
-        setLoadingMessage('Mengupload file...');
+        setLoadingMessage('Uploading file...');
         const result = await uploadFile(newActivity.file);
         fileUrl = result.url;
         fileName = result.name;
@@ -443,7 +443,7 @@ export default function TicketingSystem() {
       
       await fetchData();
       
-      setLoadingMessage('✅ Status berhasil diupdate!');
+      setLoadingMessage('✅ Status updated successfully!');
       setTimeout(() => {
         setShowLoadingPopup(false);
         setUploading(false);
@@ -458,7 +458,7 @@ export default function TicketingSystem() {
 
   const createUser = async () => {
     if (!newUser.username || !newUser.password || !newUser.full_name) {
-      alert('Semua field harus diisi!');
+      alert('All fields must be filled!');
       return;
     }
 
@@ -479,7 +479,7 @@ export default function TicketingSystem() {
 
       setNewUser({ username: '', password: '', full_name: '', team_member: '', role: 'team', team_type: 'Team PTS' });
       await fetchData();
-      alert('User berhasil dibuat!');
+      alert('User created successfully!');
     } catch (err: any) {
       alert('Error: ' + err.message);
     }
@@ -487,19 +487,19 @@ export default function TicketingSystem() {
 
   const addGuestMapping = async () => {
     if (!newMapping.guestUsername || !newMapping.projectName) {
-      alert('Semua field harus diisi!');
+      alert('All fields must be filled!');
       return;
     }
 
     const guestUser = users.find(u => u.username === newMapping.guestUsername && u.role === 'guest');
     if (!guestUser) {
-      alert('Username guest tidak ditemukan atau bukan role guest!');
+      alert('Guest username not found or not a guest role!');
       return;
     }
 
     const projectExists = tickets.some(t => t.project_name === newMapping.projectName);
     if (!projectExists) {
-      alert('Nama project tidak ditemukan!');
+      alert('Project name not found!');
       return;
     }
 
@@ -515,7 +515,7 @@ export default function TicketingSystem() {
       setNewMapping({ guestUsername: '', projectName: '' });
       await fetchGuestMappings();
       setUploading(false);
-      alert('Mapping guest berhasil ditambahkan!');
+      alert('Guest mapping added successfully!');
     } catch (err: any) {
       alert('Error: ' + err.message);
       setUploading(false);
@@ -534,7 +534,7 @@ export default function TicketingSystem() {
 
       await fetchGuestMappings();
       setUploading(false);
-      alert('Mapping guest berhasil dihapus!');
+      alert('Guest mapping deleted successfully!');
     } catch (err: any) {
       alert('Error: ' + err.message);
       setUploading(false);
@@ -543,24 +543,24 @@ export default function TicketingSystem() {
 
   const updatePassword = async () => {
     if (!selectedUserForPassword) {
-      alert('Pilih user terlebih dahulu!');
+      alert('Select user first!');
       return;
     }
 
     if (!changePassword.current || !changePassword.new || !changePassword.confirm) {
-      alert('Semua field harus diisi!');
+      alert('All fields must be filled!');
       return;
     }
 
     if (changePassword.new !== changePassword.confirm) {
-      alert('Password baru tidak cocok!');
+      alert('New password does not match!');
       return;
     }
 
     try {
       const selectedUser = users.find(u => u.id === selectedUserForPassword);
       if (!selectedUser) {
-        alert('User tidak ditemukan!');
+        alert('User not found!');
         return;
       }
 
@@ -571,7 +571,7 @@ export default function TicketingSystem() {
         .single();
 
       if (!userData || userData.password !== changePassword.current) {
-        alert('Password lama salah!');
+        alert('Old password is incorrect!');
         return;
       }
 
@@ -585,7 +585,7 @@ export default function TicketingSystem() {
         localStorage.setItem('currentUser', JSON.stringify(updatedUser));
       }
 
-      alert('Password berhasil diubah!');
+      alert('Password changed successfully!');
       setChangePassword({ current: '', new: '', confirm: '' });
       setSelectedUserForPassword('');
     } catch (err: any) {
@@ -692,7 +692,7 @@ export default function TicketingSystem() {
       
       if (now - time > sixHours) {
         handleLogout();
-        alert('Sesi Anda telah berakhir. Silakan login kembali.');
+        alert('Your session has expired. Please login again.');
       } else {
         setCurrentUser(user);
         setIsLoggedIn(true);
@@ -756,7 +756,7 @@ export default function TicketingSystem() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
         <div className="bg-white/90 p-8 rounded-2xl shadow-2xl">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mx-auto"></div>
           <p className="mt-4 font-bold">Loading...</p>
@@ -767,7 +767,7 @@ export default function TicketingSystem() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border-4 border-red-600">
           <h1 className="text-3xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">
             Login
@@ -782,7 +782,7 @@ export default function TicketingSystem() {
                 value={loginForm.username}
                 onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
                 className="w-full border-3 border-gray-300 rounded-xl px-4 py-3 focus:border-red-600 focus:ring-4 focus:ring-red-200"
-                placeholder="Masukkan username"
+                placeholder="Enter username"
               />
             </div>
             <div>
@@ -792,7 +792,7 @@ export default function TicketingSystem() {
                 value={loginForm.password}
                 onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
                 className="w-full border-3 border-gray-300 rounded-xl px-4 py-3 focus:border-red-600 focus:ring-4 focus:ring-red-200"
-                placeholder="Masukkan password"
+                placeholder="Enter password"
                 onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
               />
             </div>
@@ -809,7 +809,7 @@ export default function TicketingSystem() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
@@ -831,7 +831,7 @@ export default function TicketingSystem() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1600px] mx-auto">
         {showNotifications && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-scale-in">
@@ -840,10 +840,10 @@ export default function TicketingSystem() {
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">🔔</span>
                     <div>
-                      <h3 className="text-xl font-bold text-white">Notifikasi Ticket</h3>
+                      <h3 className="text-xl font-bold text-white">Ticket Notifications</h3>
                       {notifications.length > 0 && (
                         <p className="text-sm text-white/90">
-                          {notifications.length} ticket perlu ditangani
+                          {notifications.length} tickets need attention
                         </p>
                       )}
                     </div>
@@ -860,8 +860,8 @@ export default function TicketingSystem() {
               {notifications.length === 0 ? (
                 <div className="p-12 text-center text-gray-500">
                   <div className="text-6xl mb-4">✅</div>
-                  <p className="text-lg font-medium">Tidak ada notifikasi</p>
-                  <p className="text-sm mt-2">Semua ticket sudah ditangani</p>
+                  <p className="text-lg font-medium">No notifications</p>
+                  <p className="text-sm mt-2">All tickets have been handled</p>
                 </div>
               ) : (
                 <div className="max-h-[calc(80vh-120px)] overflow-y-auto p-4">
@@ -896,7 +896,7 @@ export default function TicketingSystem() {
                           <span className="text-xs text-gray-500">
                             📅 {new Date(ticket.created_at).toLocaleDateString('id-ID')}
                           </span>
-                          <span className="text-sm text-blue-600 font-semibold">Klik untuk lihat detail →</span>
+                          <span className="text-sm text-blue-600 font-semibold">Click to view details →</span>
                         </div>
                       </div>
                     ))}
@@ -909,7 +909,7 @@ export default function TicketingSystem() {
                   onClick={() => setShowNotifications(false)}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl hover:from-blue-700 hover:to-blue-900 font-bold transition-all"
                 >
-                  Tutup
+                  Close
                 </button>
               </div>
             </div>
@@ -921,10 +921,10 @@ export default function TicketingSystem() {
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-4 border-yellow-500 animate-scale-in">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">🔔</span>
-                <h3 className="text-xl font-bold text-gray-800">Notifikasi Ticket</h3>
+                <h3 className="text-xl font-bold text-gray-800">Ticket Notifications</h3>
               </div>
               <p className="text-gray-700 mb-4">
-                Anda memiliki <strong className="text-red-600">{notifications.length}</strong> ticket yang perlu ditangani:
+                You have <strong className="text-red-600">{notifications.length}</strong> tickets that need attention:
               </p>
               <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
                 {notifications.map(ticket => (
@@ -944,7 +944,7 @@ export default function TicketingSystem() {
                 onClick={() => setShowNotificationPopup(false)}
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl hover:from-blue-700 hover:to-blue-900 font-bold"
               >
-                Tutup
+                Close
               </button>
             </div>
           </div>
@@ -968,7 +968,7 @@ export default function TicketingSystem() {
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-4 py-3 rounded-xl hover:from-yellow-600 hover:to-yellow-700 font-bold shadow-lg transition-all"
-                title="Notifikasi"
+                title="Notifications"
               >
                 🔔
                 {notifications.length > 0 && (
@@ -1027,7 +1027,7 @@ export default function TicketingSystem() {
                   }} 
                   className="btn-primary"
                 >
-                  + Ticket Baru
+                  + New Ticket
                 </button>
               )}
               <button onClick={handleLogout} className="btn-danger">
@@ -1043,11 +1043,11 @@ export default function TicketingSystem() {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-blue-50 rounded-xl p-5 border-3 border-blue-300">
-                <h3 className="font-bold mb-3">Buat Account Team</h3>
+                <h3 className="font-bold mb-3">Create Team Account</h3>
                 <div className="space-y-3">
                   <input type="text" placeholder="Username" value={newUser.username} onChange={(e) => setNewUser({...newUser, username: e.target.value})} className="input-field" />
                   <input type="password" placeholder="Password" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} className="input-field" />
-                  <input type="text" placeholder="Nama Lengkap" value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} className="input-field" />
+                  <input type="text" placeholder="Full Name" value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} className="input-field" />
                   <select value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})} className="input-field">
                     <option value="admin">Administrator</option>
                     <option value="team">Team</option>
@@ -1058,20 +1058,20 @@ export default function TicketingSystem() {
                     <option value="Team Services">Team Services</option>
                   </select>
                   <select value={newUser.team_member} onChange={(e) => setNewUser({...newUser, team_member: e.target.value})} className="input-field">
-                    <option value="">Pilih Team Member (Opsional)</option>
+                    <option value="">Select Team Member (Optional)</option>
                     {teamMembers.map(m => <option key={m.id} value={m.name}>{m.name} ({m.team_type})</option>)}
                   </select>
                   <button onClick={createUser} className="btn-primary w-full">
-                    ➕ Buat Account
+                    ➕ Create Account
                   </button>
                 </div>
               </div>
 
               <div className="bg-orange-50 rounded-xl p-5 border-3 border-orange-300">
-                <h3 className="font-bold mb-3">Ubah Password</h3>
+                <h3 className="font-bold mb-3">Change Password</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">Pilih User yang akan diubah passwordnya</label>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">Select User to Change Password</label>
                     <select 
                       value={selectedUserForPassword} 
                       onChange={(e) => {
@@ -1080,7 +1080,7 @@ export default function TicketingSystem() {
                       }} 
                       className="input-field"
                     >
-                      <option value="">-- Pilih User Dahulu --</option>
+                      <option value="">-- Select User First --</option>
                       {users.map(u => (
                         <option key={u.id} value={u.id}>{u.full_name} (@{u.username})</option>
                       ))}
@@ -1089,11 +1089,11 @@ export default function TicketingSystem() {
                   
                   {selectedUserForPassword && (
                     <>
-                      <input type="password" placeholder="Password Lama" value={changePassword.current} onChange={(e) => setChangePassword({...changePassword, current: e.target.value})} className="input-field" />
-                      <input type="password" placeholder="Password Baru" value={changePassword.new} onChange={(e) => setChangePassword({...changePassword, new: e.target.value})} className="input-field" />
-                      <input type="password" placeholder="Konfirmasi Password" value={changePassword.confirm} onChange={(e) => setChangePassword({...changePassword, confirm: e.target.value})} className="input-field" />
+                      <input type="password" placeholder="Old Password" value={changePassword.current} onChange={(e) => setChangePassword({...changePassword, current: e.target.value})} className="input-field" />
+                      <input type="password" placeholder="New Password" value={changePassword.new} onChange={(e) => setChangePassword({...changePassword, new: e.target.value})} className="input-field" />
+                      <input type="password" placeholder="Confirm Password" value={changePassword.confirm} onChange={(e) => setChangePassword({...changePassword, confirm: e.target.value})} className="input-field" />
                       <button onClick={updatePassword} className="btn-primary w-full">
-                        🔒 Ubah Password
+                        🔒 Change Password
                       </button>
                     </>
                   )}
@@ -1102,7 +1102,7 @@ export default function TicketingSystem() {
             </div>
 
             <div className="mt-6 bg-gray-50 rounded-xl p-5 border-3 border-gray-300">
-              <h3 className="font-bold mb-3">Daftar User</h3>
+              <h3 className="font-bold mb-3">User List</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {users.map(u => (
                   <div key={u.id} className="bg-white rounded-xl p-3 border-2 border-gray-300">
@@ -1131,34 +1131,34 @@ export default function TicketingSystem() {
 
         {showGuestMapping && canAccessAccountSettings && (
           <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-teal-500 animate-slide-down">
-            <h2 className="text-2xl font-bold mb-4 text-teal-800">👥 Guest Mapping - Akses Project</h2>
-            <p className="text-gray-600 mb-6">Kelola akses guest user ke project tertentu. Satu guest bisa memiliki akses ke beberapa project.</p>
+            <h2 className="text-2xl font-bold mb-4 text-teal-800">👥 Guest Mapping - Project Access</h2>
+            <p className="text-gray-600 mb-6">Manage guest user access to specific projects. One guest can have access to multiple projects.</p>
             
-            <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border-3 border-teal-300 mb-6">
-              <h3 className="font-bold mb-4 text-lg text-teal-900">➕ Tambah Mapping Baru</h3>
+            <div className="bg-white rounded-xl p-6 border-2 border-teal-300 mb-6">
+              <h3 className="font-bold mb-4 text-lg text-teal-900">➕ Add New Mapping</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Username Guest</label>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">Guest Username</label>
                   <select 
                     value={newMapping.guestUsername} 
                     onChange={(e) => setNewMapping({...newMapping, guestUsername: e.target.value})} 
                     className="input-field"
                   >
-                    <option value="">Pilih Guest User</option>
+                    <option value="">Select Guest User</option>
                     {users.filter(u => u.role === 'guest').map(u => (
                       <option key={u.id} value={u.username}>{u.username} - {u.full_name}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Nama Project</label>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700">Project Name</label>
                   <select 
                     value={newMapping.projectName} 
                     onChange={(e) => setNewMapping({...newMapping, projectName: e.target.value})} 
                     className="input-field"
                   >
-                    <option value="">Pilih Nama Project</option>
+                    <option value="">Select Project Name</option>
                     {uniqueProjectNames.map(name => (
                       <option key={name} value={name}>{name}</option>
                     ))}
@@ -1167,30 +1167,30 @@ export default function TicketingSystem() {
               </div>
               
               <button onClick={addGuestMapping} disabled={uploading} className="w-full bg-gradient-to-r from-teal-600 to-teal-800 text-white px-6 py-3 rounded-xl hover:from-teal-700 hover:to-teal-900 font-bold shadow-xl transition-all disabled:opacity-50">
-                {uploading ? '⏳ Memproses...' : '➕ Tambah Mapping'}
+                {uploading ? '⏳ Processing...' : '➕ Add Mapping'}
               </button>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border-3 border-gray-300 shadow-lg">
+            <div className="bg-white rounded-xl p-6 border-2 border-gray-300">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg text-gray-800">📋 Daftar Mapping</h3>
+                <h3 className="font-bold text-lg text-gray-800">📋 Mapping List</h3>
                 <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-bold">
-                  {guestMappings.length} mapping
+                  {guestMappings.length} mappings
                 </span>
               </div>
               
               {guestMappings.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🔭</div>
-                  <p className="text-gray-500 font-medium">Belum ada mapping</p>
-                  <p className="text-sm text-gray-400 mt-2">Tambahkan mapping untuk memberikan akses guest ke project</p>
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-3">📭</div>
+                  <p className="text-gray-500 font-medium">No mappings yet</p>
+                  <p className="text-sm text-gray-400 mt-2">Add mapping to grant guest access to projects</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="space-y-3">
                   {guestMappings.map(mapping => (
-                    <div key={mapping.id} className="flex justify-between items-center p-4 bg-gradient-to-r from-teal-50 to-blue-50 rounded-xl border-2 border-teal-200 hover:shadow-md transition-all">
+                    <div key={mapping.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex items-center gap-3 mb-1">
                           <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-lg text-sm font-bold">
                             👤 {mapping.guest_username}
                           </span>
@@ -1200,7 +1200,7 @@ export default function TicketingSystem() {
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">
-                          Dibuat: {new Date(mapping.created_at).toLocaleDateString('id-ID', { 
+                          Created: {new Date(mapping.created_at).toLocaleDateString('id-ID', { 
                             day: '2-digit', 
                             month: 'long', 
                             year: 'numeric',
@@ -1212,9 +1212,9 @@ export default function TicketingSystem() {
                       <button
                         onClick={() => deleteGuestMapping(mapping.id)}
                         disabled={uploading}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition-all disabled:opacity-50 ml-4 hover:scale-105"
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition-all disabled:opacity-50 ml-4"
                       >
-                        🗑️ Hapus
+                        🗑️ Delete
                       </button>
                     </div>
                   ))}
@@ -1223,12 +1223,12 @@ export default function TicketingSystem() {
             </div>
 
             <div className="mt-6 bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
-              <h4 className="font-bold text-sm text-blue-900 mb-2">ℹ️ Informasi</h4>
+              <h4 className="font-bold text-sm text-blue-900 mb-2">ℹ️ Information</h4>
               <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                <li>Guest user hanya bisa melihat ticket dari project yang sudah dimapping</li>
-                <li>Satu guest bisa memiliki akses ke beberapa project berbeda</li>
-                <li>Guest tidak bisa membuat atau mengupdate ticket</li>
-                <li>Hapus mapping untuk mencabut akses guest ke project tertentu</li>
+                <li>Guest users can only view tickets from mapped projects</li>
+                <li>One guest can have access to multiple different projects</li>
+                <li>Guests cannot create or update tickets</li>
+                <li>Delete mapping to revoke guest access to specific project</li>
               </ul>
             </div>
           </div>
@@ -1313,7 +1313,7 @@ export default function TicketingSystem() {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-                <p className="text-xs text-center text-gray-500 mt-2 italic">Klik pada chart untuk filter status</p>
+                <p className="text-xs text-center text-gray-500 mt-2 italic">Click on chart to filter status</p>
               </div>
 
               <div className="chart-container bg-gradient-to-br from-white to-gray-50">
@@ -1351,13 +1351,13 @@ export default function TicketingSystem() {
         <div className="bg-white/85 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-blue-500">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-bold mb-2">🔍 Pencarian</label>
+              <label className="block text-sm font-bold mb-2">🔍 Search</label>
               <input type="text" value={searchProject} onChange={(e) => setSearchProject(e.target.value)} placeholder=" ... " className="input-field" />
             </div>
             <div className="md:w-64">
               <label className="block text-sm font-bold mb-2">📋 Filter Status</label>
               <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input-field">
-                <option value="All">Semua Status</option>
+                <option value="All">All Status</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Pending">Pending</option>
                 <option value="Solved">Solved</option>
@@ -1368,17 +1368,17 @@ export default function TicketingSystem() {
 
         {showNewTicket && canCreateTicket && (
           <div className="bg-white/75 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-green-500 animate-slide-down">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">🎫 Buat Ticket Baru</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">🎫 Create New Ticket</h2>
             
             <div className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                  <label className="block text-sm font-bold text-gray-800 mb-2">📌 Nama Project *</label>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">📌 Project Name *</label>
                   <input 
                     type="text" 
                     value={newTicket.project_name} 
                     onChange={(e) => setNewTicket({...newTicket, project_name: e.target.value})} 
-                    placeholder="Contoh: Project BCA Cibitung" 
+                    placeholder="Example: BCA Cibitung Project" 
                     className="w-full border-2 border-blue-400 rounded-lg px-4 py-2.5 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all font-medium bg-white"
                   />
                 </div>
@@ -1388,7 +1388,7 @@ export default function TicketingSystem() {
                     type="text" 
                     value={newTicket.issue_case} 
                     onChange={(e) => setNewTicket({...newTicket, issue_case: e.target.value})} 
-                    placeholder="Contoh: Videowall Mati" 
+                    placeholder="Example: Videowall Not Working" 
                     className="w-full border-2 border-red-400 rounded-lg px-4 py-2.5 focus:border-red-600 focus:ring-2 focus:ring-red-200 transition-all font-medium bg-white"
                   />
                 </div>
@@ -1396,17 +1396,17 @@ export default function TicketingSystem() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                  <label className="block text-sm font-bold text-gray-800 mb-2">👤 Nama Sales</label>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">👤 Sales Name</label>
                   <input 
                     type="text" 
                     value={newTicket.sales_name} 
                     onChange={(e) => setNewTicket({...newTicket, sales_name: e.target.value})} 
-                    placeholder="Nama sales yang handle" 
+                    placeholder="Sales handler name" 
                     className="w-full border-2 border-purple-400 rounded-lg px-4 py-2.5 focus:border-purple-600 focus:ring-2 focus:ring-purple-200 transition-all font-medium bg-white"
                   />
                 </div>
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                  <label className="block text-sm font-bold text-gray-800 mb-2">📱 Nama & Telepon User</label>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">📱 User Name & Phone</label>
                   <input 
                     type="text" 
                     value={newTicket.customer_phone} 
@@ -1419,7 +1419,7 @@ export default function TicketingSystem() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-4">
-                  <label className="block text-sm font-bold text-gray-800 mb-2">📅 Tanggal</label>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">📅 Date</label>
                   <input 
                     type="date" 
                     value={newTicket.date} 
@@ -1440,13 +1440,13 @@ export default function TicketingSystem() {
                   </select>
                 </div>
                 <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
-                  <label className="block text-sm font-bold text-gray-800 mb-2">👨‍💼 Assign ke *</label>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">👨‍💼 Assign to *</label>
                   <select 
                     value={newTicket.assigned_to} 
                     onChange={(e) => setNewTicket({...newTicket, assigned_to: e.target.value})} 
                     className="w-full border-2 border-orange-400 rounded-lg px-4 py-2.5 focus:border-orange-600 focus:ring-2 focus:ring-orange-200 transition-all font-medium bg-white"
                   >
-                    <option value="">Pilih Handler</option>
+                    <option value="">Select Handler</option>
                     <optgroup label="Team PTS">
                       {teamPTSMembers.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
                     </optgroup>
@@ -1455,11 +1455,11 @@ export default function TicketingSystem() {
               </div>
 
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-300">
-                <label className="block text-sm font-bold text-gray-800 mb-2">📝 Deskripsi Detail</label>
+                <label className="block text-sm font-bold text-gray-800 mb-2">📝 Detailed Description</label>
                 <textarea 
                   value={newTicket.description} 
                   onChange={(e) => setNewTicket({...newTicket, description: e.target.value})} 
-                  placeholder="Jelaskan detail masalah yang terjadi..." 
+                  placeholder="Explain the problem details..." 
                   className="w-full border-2 border-gray-400 rounded-lg px-4 py-2.5 focus:border-gray-600 focus:ring-2 focus:ring-gray-200 transition-all font-medium bg-white resize-none" 
                   rows={4}
                 />
@@ -1468,10 +1468,10 @@ export default function TicketingSystem() {
             
             <div className="grid grid-cols-2 gap-4 mt-6">
               <button onClick={createTicket} disabled={uploading} className="bg-gradient-to-r from-green-600 to-green-800 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-900 font-bold shadow-xl transition-all hover:scale-105">
-                {uploading ? '⏳ Menyimpan...' : '💾 Simpan Ticket'}
+                {uploading ? '⏳ Saving...' : '💾 Save Ticket'}
               </button>
               <button onClick={() => setShowNewTicket(false)} className="bg-gradient-to-r from-gray-500 to-gray-700 text-white px-6 py-3 rounded-xl hover:from-gray-600 hover:to-gray-800 font-bold shadow-xl transition-all hover:scale-105">
-                ✖ Batal
+                ✖ Cancel
               </button>
             </div>
           </div>
@@ -1480,7 +1480,7 @@ export default function TicketingSystem() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="bg-blue-600/80 backdrop-blur-md rounded-2xl shadow-xl p-4 border-3 border-blue-700 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">📋 Daftar Ticket ({filteredTickets.length})</h2>
+              <h2 className="text-2xl font-bold text-white">📋 Ticket List ({filteredTickets.length})</h2>
               <button
                 onClick={() => setShowTicketList(!showTicketList)}
                 className="text-white hover:bg-white/20 rounded-lg p-2 transition-all"
@@ -1489,13 +1489,13 @@ export default function TicketingSystem() {
               </button>
             </div>
             {showTicketList && (
-              <div className="max-h-[1200px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              <div className="max-h-[800px] overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                 {filteredTickets.length === 0 ? (
                   <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-8 text-center border-3 border-gray-400">
                     <p className="text-gray-600 font-medium">
                       {searchProject || filterStatus !== 'All' 
-                        ? 'Tidak ada ticket yang sesuai dengan pencarian.' 
-                        : 'Belum ada ticket. Buat ticket pertama Anda!'}
+                        ? 'No tickets match the search.' 
+                        : 'No tickets yet. Create your first ticket!'}
                     </p>
                   </div>
                 ) : (
@@ -1522,18 +1522,18 @@ export default function TicketingSystem() {
                             </div>
                             {ticket.customer_phone && (
                               <div className="flex">
-                                <span className="text-gray-500 font-medium w-32">Telepon Customer</span>
+                                <span className="text-gray-500 font-medium w-32">Customer Phone</span>
                                 <span className="text-gray-700 flex-1">: {ticket.customer_phone}</span>
                               </div>
                             )}
                             {ticket.sales_name && (
                               <div className="flex">
-                                <span className="text-gray-500 font-medium w-32">Sales Project</span>
+                                <span className="text-gray-500 font-medium w-32">Project Sales</span>
                                 <span className="text-gray-700 flex-1">: {ticket.sales_name}</span>
                               </div>
                             )}
                             <div className="flex">
-                              <span className="text-gray-500 font-medium w-32">Tanggal</span>
+                              <span className="text-gray-500 font-medium w-32">Date</span>
                               <span className="text-gray-700 flex-1">: {new Date(ticket.date).toLocaleDateString('id-ID')}</span>
                             </div>
                             <div className="flex">
@@ -1554,8 +1554,8 @@ export default function TicketingSystem() {
                         </div>
                       </div>
                       <div className="flex gap-3 text-xs text-gray-600 font-medium mt-3 pt-3 border-t border-gray-300">
-                        <span>💬 {ticket.activity_logs?.length || 0} aktivitas</span>
-                        {ticket.activity_logs?.some(a => a.file_url) && <span className="text-green-600">📄 Ada Report</span>}
+                        <span>💬 {ticket.activity_logs?.length || 0} activities</span>
+                        {ticket.activity_logs?.some(a => a.file_url) && <span className="text-green-600">📄 Has Report</span>}
                       </div>
                     </div>
                   ))
@@ -1581,13 +1581,13 @@ export default function TicketingSystem() {
                     </div>
                     {selectedTicket.customer_phone && (
                       <div className="flex">
-                        <span className="text-gray-600 font-semibold w-40">Telepon Customer</span>
+                        <span className="text-gray-600 font-semibold w-40">Customer Phone</span>
                         <span className="text-gray-800 flex-1">: {selectedTicket.customer_phone}</span>
                       </div>
                     )}
                     {selectedTicket.sales_name && (
                       <div className="flex">
-                        <span className="text-gray-600 font-semibold w-40">Sales Project</span>
+                        <span className="text-gray-600 font-semibold w-40">Project Sales</span>
                         <span className="text-gray-800 flex-1">: {selectedTicket.sales_name}</span>
                       </div>
                     )}
@@ -1596,7 +1596,7 @@ export default function TicketingSystem() {
                       <span className="text-gray-800 flex-1">: {selectedTicket.assigned_to}</span>
                     </div>
                     <div className="flex">
-                      <span className="text-gray-600 font-semibold w-40">Tanggal</span>
+                      <span className="text-gray-600 font-semibold w-40">Date</span>
                       <span className="text-gray-800 flex-1">: {new Date(selectedTicket.date).toLocaleDateString('id-ID')}</span>
                     </div>
                     <div className="flex items-center">
@@ -1626,7 +1626,7 @@ export default function TicketingSystem() {
 
               {selectedTicket.description && (
                 <div className="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
-                  <p className="text-sm font-semibold text-gray-600 mb-1">Deskripsi:</p>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Description:</p>
                   <p className="text-sm text-gray-800">{selectedTicket.description}</p>
                 </div>
               )}
@@ -1662,7 +1662,7 @@ export default function TicketingSystem() {
                         <p className="text-sm text-gray-900">{log.notes}</p>
                         {log.assigned_to_services && (
                           <div className="mt-2 p-2 bg-red-50 border-l-4 border-red-500 rounded">
-                            <p className="text-sm font-bold text-red-800">→ Ticket di-assign ke Team Services</p>
+                            <p className="text-sm font-bold text-red-800">→ Ticket assigned to Team Services</p>
                           </div>
                         )}
                         {log.file_url && (
@@ -1673,7 +1673,7 @@ export default function TicketingSystem() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-500 text-center py-4">Belum ada aktivitas</p>
+                    <p className="text-gray-500 text-center py-4">No activities yet</p>
                   )}
                 </div>
               </div>
@@ -1693,19 +1693,19 @@ export default function TicketingSystem() {
                   {showUpdateForm && (
                     <div className="space-y-4 animate-slide-down">
                       <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Handler (Otomatis dari User Login)</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Handler (Auto from Logged User)</label>
                         <input 
                           type="text" 
                           value={newActivity.handler_name} 
                           disabled 
                           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 cursor-not-allowed text-gray-700 font-semibold"
-                          title="Handler otomatis sesuai user yang login"
+                          title="Handler auto-filled from logged user"
                         />
-                        <p className="text-xs text-gray-500 italic mt-2">* Handler tidak dapat diubah, otomatis dari akun yang login</p>
+                        <p className="text-xs text-gray-500 italic mt-2">* Handler cannot be changed, auto-filled from logged account</p>
                       </div>
                       
                       <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">🏷️ Status Baru *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">🏷️ New Status *</label>
                         <select 
                           value={newActivity.new_status} 
                           onChange={(e) => setNewActivity({...newActivity, new_status: e.target.value})} 
@@ -1718,22 +1718,22 @@ export default function TicketingSystem() {
                       </div>
                       
                       <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">🔧 Action yang Dilakukan</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">🔧 Action Taken</label>
                         <input 
                           type="text" 
                           value={newActivity.action_taken} 
                           onChange={(e) => setNewActivity({...newActivity, action_taken: e.target.value})} 
-                          placeholder="Contoh: Cek kabel HDMI dan power, restart system" 
+                          placeholder="Example: Check HDMI cable and power, restart system" 
                           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-white"
                         />
                       </div>
                       
                       <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">📝 Notes Detail *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">📝 Detailed Notes *</label>
                         <textarea 
                           value={newActivity.notes} 
                           onChange={(e) => setNewActivity({...newActivity, notes: e.target.value})} 
-                          placeholder="Jelaskan detail ....." 
+                          placeholder="Explain details ....." 
                           className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-white resize-none"
                           rows={4}
                         />
@@ -1750,20 +1750,20 @@ export default function TicketingSystem() {
                               className="mt-1 w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500"
                             />
                             <label htmlFor="assign_services" className="flex-1 cursor-pointer">
-                              <span className="block text-sm font-bold text-red-800">🔄 Assign ke Team Services</span>
-                              <span className="text-xs text-red-600">Centang jika ticket perlu ditangani oleh Team Services</span>
+                              <span className="block text-sm font-bold text-red-800">🔄 Assign to Team Services</span>
+                              <span className="text-xs text-red-600">Check if ticket needs to be handled by Team Services</span>
                             </label>
                           </div>
                           
                           {newActivity.assign_to_services && (
                             <div className="mt-3 animate-slide-down">
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Handler dari Team Services *</label>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Select Handler from Team Services *</label>
                               <select 
                                 value={newActivity.services_assignee} 
                                 onChange={(e) => setNewActivity({...newActivity, services_assignee: e.target.value})} 
                                 className="w-full border-2 border-red-400 rounded-lg px-4 py-2.5 focus:border-red-600 focus:ring-2 focus:ring-red-100 transition-all bg-white"
                               >
-                                <option value="">-- Pilih Handler --</option>
+                                <option value="">-- Select Handler --</option>
                                 {teamServicesMembers.map(m => (
                                   <option key={m.id} value={m.name}>{m.name}</option>
                                 ))}
@@ -1774,7 +1774,7 @@ export default function TicketingSystem() {
                       )}
                       
                       <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">📎 Upload File Report (PDF)</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">📎 Upload Report File (PDF)</label>
                         <input 
                           type="file" 
                           accept=".pdf" 
@@ -1784,7 +1784,7 @@ export default function TicketingSystem() {
                         {newActivity.file && (
                           <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="text-blue-700 font-bold">✓ File terpilih:</span>
+                              <span className="text-blue-700 font-bold">✓ File selected:</span>
                               <span className="text-gray-800 font-semibold">{newActivity.file.name}</span>
                               <span className="text-gray-600">({(newActivity.file.size / 1024).toFixed(2)} KB)</span>
                             </div>
@@ -1797,7 +1797,7 @@ export default function TicketingSystem() {
                         disabled={uploading || !newActivity.notes.trim() || (newActivity.assign_to_services && !newActivity.services_assignee)} 
                         className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-3.5 rounded-xl hover:from-blue-700 hover:to-blue-900 font-bold shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
                       >
-                        {uploading ? '⏳ Sedang Upload & Simpan...' : '💾 Update Status & Simpan'}
+                        {uploading ? '⏳ Uploading & Saving...' : '💾 Update Status & Save'}
                       </button>
                     </div>
                   )}
@@ -1806,7 +1806,7 @@ export default function TicketingSystem() {
 
               {!canUpdateTicket && (
                 <div className="border-t-2 border-gray-300 pt-6 mt-6 text-center">
-                  <p className="text-gray-500 italic">Anda tidak memiliki akses untuk mengupdate ticket (Guest mode)</p>
+                  <p className="text-gray-500 italic">You do not have access to update tickets (Guest mode)</p>
                 </div>
               )}
             </div>
@@ -1892,4 +1892,3 @@ export default function TicketingSystem() {
     </div>
   );
 }
-

@@ -896,7 +896,7 @@ Error Code: ${activityError.code}`;
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
-        <div className="bg-white/90 p-8 rounded-2xl shadow-2xl">
+        <div className="bg-white/75 p-8 rounded-2xl shadow-2xl">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mx-auto"></div>
           <p className="mt-4 font-bold">Loading...</p>
         </div>
@@ -907,7 +907,7 @@ Error Code: ${activityError.code}`;
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border-4 border-red-600">
+        <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border-4 border-red-600">
           <h1 className="text-3xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">
             Login
           </h1>
@@ -951,7 +951,7 @@ Error Code: ${activityError.code}`;
     <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
+          <div className="bg-white/60 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
             <div className="flex flex-col items-center">
               {loadingMessage.includes('✅') ? (
                 <div className="text-6xl mb-4 animate-bounce">✅</div>
@@ -973,7 +973,7 @@ Error Code: ${activityError.code}`;
       <div className="max-w-[1600px] mx-auto">
         {showNotifications && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-scale-in">
+            <div className="bg-white/70 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-scale-in">
               <div className="p-6 border-b-2 border-gray-200 bg-gradient-to-r from-yellow-400 to-yellow-500">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
@@ -1057,7 +1057,7 @@ Error Code: ${activityError.code}`;
 
         {showNotificationPopup && notifications.length > 0 && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-4 border-yellow-500 animate-scale-in">
+            <div className="bg-white/75 rounded-2xl shadow-2xl max-w-md w-full p-6 border-4 border-yellow-500 animate-scale-in">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-4xl">🔔</span>
                 <h3 className="text-xl font-bold text-gray-800">Ticket Notifications</h3>
@@ -1091,7 +1091,7 @@ Error Code: ${activityError.code}`;
 
         {showTicketDetailPopup && selectedTicket && (
           <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
+            <div className="bg-white/75 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
               <div className="p-6 border-b-2 border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
@@ -1240,7 +1240,7 @@ Error Code: ${activityError.code}`;
                       
                       {showUpdateForm && (
                         <div className="space-y-4 animate-slide-down">
-                          <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
+                          <div className="bg-white/75 rounded-xl p-4 border border-gray-300 shadow-sm">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">👤 Handler (Auto from Logged User)</label>
                             <input 
                               type="text" 
@@ -1252,7 +1252,7 @@ Error Code: ${activityError.code}`;
                             <p className="text-xs text-gray-500 italic mt-2">* Handler cannot be changed, auto-filled from logged account</p>
                           </div>
                           
-                          <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
+                          <div className="bg-white/75 rounded-xl p-4 border border-gray-300 shadow-sm">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">🏷️ New Status *</label>
                             <select 
                               value={newActivity.new_status} 
@@ -1511,7 +1511,7 @@ Error Code: ${activityError.code}`;
                   <span className="text-2xl">✅</span>
                 </div>
                 <p className="text-4xl font-bold mb-1">{stats.solved}</p>
-                <div className="h-1 bg-white/30 rounded-full mt-2">
+                <div className="h-1 bg-white/20 rounded-full mt-2">
                   <div className="h-full bg-white rounded-full" style={{width: `${stats.total > 0 ? (stats.solved/stats.total*100) : 0}%`}}></div>
                 </div>
               </div>
@@ -1588,7 +1588,7 @@ Error Code: ${activityError.code}`;
             <h2 className="text-2xl font-bold mb-6 text-gray-800">⚙️ Account Management</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white rounded-xl p-5 border-2 border-blue-300 shadow-sm">
+              <div className="bg-white/60 rounded-xl p-5 border-2 border-blue-300 shadow-sm">
                 <h3 className="font-bold mb-4 text-blue-900">➕ Create New Account</h3>
                 <div className="space-y-3">
                   <input type="text" placeholder="Username" value={newUser.username} onChange={(e) => setNewUser({...newUser, username: e.target.value})} className="input-field-simple" />
@@ -1612,7 +1612,7 @@ Error Code: ${activityError.code}`;
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl p-5 border-2 border-orange-300 shadow-sm">
+              <div className="bg-white/60 rounded-xl p-5 border-2 border-orange-300 shadow-sm">
                 <h3 className="font-bold mb-4 text-orange-900">🔒 Change Password</h3>
                 <div className="space-y-3">
                   <select 
@@ -1643,7 +1643,7 @@ Error Code: ${activityError.code}`;
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-5 border-2 border-gray-300 shadow-sm">
+            <div className="bg-white/60 rounded-xl p-5 border-2 border-gray-300 shadow-sm">
               <h3 className="font-bold mb-4 text-gray-800">👥 User List</h3>
               <div className="max-h-[400px] overflow-y-auto">
                 <div className="space-y-2">
@@ -1680,7 +1680,7 @@ Error Code: ${activityError.code}`;
             <h2 className="text-2xl font-bold mb-4 text-teal-800">👥 Guest Mapping - Project Access</h2>
             <p className="text-gray-600 mb-6">Manage guest user access to specific projects. One guest can have access to multiple projects.</p>
             
-            <div className="bg-white rounded-xl p-6 border-2 border-teal-300 mb-6">
+            <div className="bg-white/50 rounded-xl p-6 border-2 border-teal-300 mb-6">
               <h3 className="font-bold mb-4 text-lg text-teal-900">➕ Add New Mapping</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1717,7 +1717,7 @@ Error Code: ${activityError.code}`;
               </button>
             </div>
 
-            <div className="bg-white rounded-xl p-6 border-2 border-gray-300">
+            <div className="bg-white/50 rounded-xl p-6 border-2 border-gray-300">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-lg text-gray-800">📋 Mapping List</h3>
                 <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-bold">
@@ -1770,7 +1770,7 @@ Error Code: ${activityError.code}`;
           </div>
         )}
 
-        <div className="bg-white/85 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-blue-500">
+        <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-blue-500">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <label className="block text-sm font-bold mb-2">🔍 Search</label>
@@ -1925,7 +1925,7 @@ Error Code: ${activityError.code}`;
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full backdrop-blur-sm bg-white/30">
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                     <th className="px-4 py-3 text-left font-bold">Project Name</th>
@@ -1940,7 +1940,7 @@ Error Code: ${activityError.code}`;
                   {filteredTickets.map((ticket, index) => (
                     <tr 
                       key={ticket.id} 
-                      className={`border-b border-gray-200 hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      className={`border-b border-white/50 hover:bg-blue-500/45 transition-colors ${index % 2 === 0 ? 'bg-white/45' : 'bg-gray-45'}`}
                     >
                       <td className="px-4 py-3">
                         <div className="font-bold text-gray-800">{ticket.project_name}</div>

@@ -740,14 +740,14 @@ Error Code: ${activityError.code}`;
         </head>
         <body>
           <h1>Ticket Report</h1>
-          <h2>${ticket.project_name}</h2>
+          <h2><th>Project : </th>${ticket.project_name}</h2>
           <table>
-            <tr><th>Issue</th><td>${ticket.issue_case}</td></tr>
-            <tr><th>SN Unit</th><td>${ticket.sn_unit || '-'}</td></tr>
-            <tr><th>Phone</th><td>${ticket.customer_phone || '-'}</td></tr>
-            <tr><th>Sales</th><td>${ticket.sales_name || '-'}</td></tr>
-            <tr><th>Status Team PTS</th><td>${ticket.status}</td></tr>
-            ${ticket.services_status ? `<tr><th>Status Team Services</th><td>${ticket.services_status}</td></tr>` : ''}
+            <tr><th>Issue :</th><td>${ticket.issue_case}</td></tr>
+            <tr><th>SN Unit :</th><td>${ticket.sn_unit || '-'}</td></tr>
+            <tr><th>Name & Phone User :</th><td>${ticket.customer_phone || '-'}</td></tr>
+            <tr><th>Sales Project :</th><td>${ticket.sales_name || '-'}</td></tr>
+            <tr><th>Team PTS Status :</th><td>${ticket.status}</td></tr>
+            ${ticket.services_status ? `<tr><th>Team Services Status :</th><td>${ticket.services_status}</td></tr>` : ''}
             <tr><th>Current Team</th><td>${ticket.current_team}</td></tr>
             <tr><th>Date</th><td>${ticket.date}</td></tr>
           </table>
@@ -1149,8 +1149,8 @@ Error Code: ${activityError.code}`;
         )}
 
         {showTicketDetailPopup && selectedTicket && (
-          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white/85 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
+          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[9999] p-4">
+            <div className="bg-white/90 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
               <div className="p-6 border-b-2 border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
@@ -2046,9 +2046,16 @@ Error Code: ${activityError.code}`;
                         <div className="text-xs text-purple-600">{ticket.current_team}</div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.status]}`}>
-                          {ticket.status}
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.status]}`}>
+                            {ticket.status}
+                          </span>
+                          {ticket.services_status && (
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.services_status]}`}>
+                              Services: {ticket.services_status}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-center">
                         {ticket.activity_logs && ticket.activity_logs.length > 0 ? (

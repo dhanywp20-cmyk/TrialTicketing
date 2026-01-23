@@ -743,6 +743,12 @@ Error Code: ${activityError.code}`;
     win?.print();
   };
 
+  const currentUserTeamType = useMemo(() => {
+    if (!currentUser) return 'Team PTS';
+    const member = teamMembers.find(m => m.username === currentUser.username);
+    return member?.team_type || 'Team PTS';
+  }, [currentUser, teamMembers]);
+
   const filteredTickets = useMemo(() => {
     return tickets.filter(t => {
       const match = t.project_name.toLowerCase().includes(searchProject.toLowerCase()) ||
@@ -859,11 +865,7 @@ Error Code: ${activityError.code}`;
   const canUpdateTicket = currentUser?.role !== 'guest';
   const canAccessAccountSettings = currentUser?.role === 'admin';
 
-  const currentUserTeamType = useMemo(() => {
-    if (!currentUser) return 'Team PTS';
-    const member = teamMembers.find(m => m.username === currentUser.username);
-    return member?.team_type || 'Team PTS';
-  }, [currentUser, teamMembers]);
+
 
   if (loading) {
     return (

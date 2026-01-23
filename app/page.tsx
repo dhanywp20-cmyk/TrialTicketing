@@ -179,22 +179,19 @@ export default function TicketingSystem() {
   };
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const utcYear = date.getUTCFullYear();
-    const utcMonth = date.getUTCMonth();
-    const utcDate = date.getUTCDate();
-    const utcHours = date.getUTCHours();
-    const utcMinutes = date.getUTCMinutes();
-    const utcSeconds = date.getUTCSeconds();
+    // Parse the UTC timestamp from database
+    const utcDate = new Date(dateString);
     
-    const jakartaDate = new Date(Date.UTC(utcYear, utcMonth, utcDate, utcHours + 7, utcMinutes, utcSeconds));
+    // Convert to Jakarta time (UTC+7) by adding 7 hours in milliseconds
+    const jakartaTime = new Date(utcDate.getTime() + (7 * 60 * 60 * 1000));
     
-    const day = String(jakartaDate.getUTCDate()).padStart(2, '0');
-    const month = String(jakartaDate.getUTCMonth() + 1).padStart(2, '0');
-    const year = jakartaDate.getUTCFullYear();
-    const hours = String(jakartaDate.getUTCHours()).padStart(2, '0');
-    const minutes = String(jakartaDate.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(jakartaDate.getUTCSeconds()).padStart(2, '0');
+    // Format the date components
+    const day = String(jakartaTime.getUTCDate()).padStart(2, '0');
+    const month = String(jakartaTime.getUTCMonth() + 1).padStart(2, '0');
+    const year = jakartaTime.getUTCFullYear();
+    const hours = String(jakartaTime.getUTCHours()).padStart(2, '0');
+    const minutes = String(jakartaTime.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(jakartaTime.getUTCSeconds()).padStart(2, '0');
     
     return `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
   };
@@ -411,7 +408,8 @@ export default function TicketingSystem() {
       const member = teamMembers.find(m => m.username === currentUser?.username);
       const teamType = member?.team_type || 'Team PTS';
 
-      await supabase.from('activity_logs').insert([{
+      // Insert activity log with proper error handling for RLS policy
+      const activityData = {
         ticket_id: selectedTicket.id,
         handler_name: newActivity.handler_name,
         handler_username: currentUser?.username,
@@ -424,7 +422,18 @@ export default function TicketingSystem() {
         file_name: fileName || null,
         photo_url: photoUrl || null,
         photo_name: photoName || null
-      }]);
+      };
+
+      const { error: activityError } = await supabase.from('activity_logs').insert([activityData]);
+      
+      if (activityError) {
+        console.error('Activity log insert error:', activityError);
+        // Check if it's an RLS policy error
+        if (activityError.message.includes('row-level security') || activityError.code === '42501') {
+          throw new Error('Permission denied: Please contact administrator to enable activity logging permissions for your account.');
+        }
+        throw activityError;
+      }
 
       const updateData: any = {};
       
@@ -440,9 +449,14 @@ export default function TicketingSystem() {
         updateData.services_status = newActivity.new_status;
       }
 
-      await supabase.from('tickets')
+      const { error: updateError } = await supabase.from('tickets')
         .update(updateData)
         .eq('id', selectedTicket.id);
+
+      if (updateError) {
+        console.error('Ticket update error:', updateError);
+        throw updateError;
+      }
 
       setNewActivity({
         handler_name: newActivity.handler_name,
@@ -825,7 +839,7 @@ export default function TicketingSystem() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.pngg)' }}>
+    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
@@ -1515,7 +1529,7 @@ export default function TicketingSystem() {
 
             <div className="bg-white rounded-xl p-5 border-2 border-gray-300 shadow-sm">
               <h3 className="font-bold mb-4 text-gray-800">👥 User List</h3>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-[400px] overflow-y-auto">
                 <div className="space-y-2">
                   {users.map(u => (
                     <div key={u.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex justify-between items-center">
@@ -1602,7 +1616,7 @@ export default function TicketingSystem() {
                   <p className="text-sm text-gray-400 mt-2">Add mapping to grant guest access to projects</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="max-h-[400px] overflow-y-auto space-y-3">
                   {guestMappings.map(mapping => (
                     <div key={mapping.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-200">
                       <div className="flex-1">
@@ -1917,4 +1931,3 @@ export default function TicketingSystem() {
     </div>
   );
 }
-

@@ -46,6 +46,7 @@ interface ActivityLog {
 interface Ticket {
   id: string;
   project_name: string;
+  address?: string;
   customer_phone: string;
   sales_name: string;
   issue_case: string;
@@ -108,6 +109,7 @@ export default function TicketingSystem() {
 
   const [newTicket, setNewTicket] = useState({
     project_name: '',
+    address: '',
     customer_phone: '',
     sales_name: '',
     sn_unit: '',
@@ -310,6 +312,7 @@ export default function TicketingSystem() {
       
       const ticketData = {
         project_name: newTicket.project_name,
+        address: newTicket.address || null,
         customer_phone: newTicket.customer_phone || null,
         sales_name: newTicket.sales_name || null,
         sn_unit: newTicket.sn_unit || null,
@@ -510,6 +513,22 @@ Error Code: ${activityError.code}`;
           updateData.current_team = 'Team Services';
           updateData.services_status = 'Pending';
           updateData.assigned_to = newActivity.services_assignee;
+
+          // Trigger Email Notification (Backend Function)
+          supabase.functions.invoke('send-email', {
+            body: {
+              ticketId: selectedTicket.id,
+              projectName: selectedTicket.project_name,
+              issueCase: selectedTicket.issue_case,
+              assignedTo: newActivity.services_assignee,
+              snUnit: selectedTicket.sn_unit || '-',
+              customerPhone: selectedTicket.customer_phone || '-',
+              salesName: selectedTicket.sales_name || '-',
+              activityLog: newActivity.notes || '-'
+            }
+          }).then(({ error }) => {
+            if (error) console.error('Failed to send email:', error);
+          });
         }
       } else if (teamType === 'Team Services') {
         updateData.services_status = newActivity.new_status;
@@ -740,14 +759,15 @@ Error Code: ${activityError.code}`;
         </head>
         <body>
           <h1>Ticket Report</h1>
-          <h2>${ticket.project_name}</h2>
+          <h2><th>Project Name : </th>${ticket.project_name}</h2>
           <table>
-            <tr><th>Issue</th><td>${ticket.issue_case}</td></tr>
-            <tr><th>SN Unit</th><td>${ticket.sn_unit || '-'}</td></tr>
-            <tr><th>Phone</th><td>${ticket.customer_phone || '-'}</td></tr>
-            <tr><th>Sales</th><td>${ticket.sales_name || '-'}</td></tr>
-            <tr><th>Status Team PTS</th><td>${ticket.status}</td></tr>
-            ${ticket.services_status ? `<tr><th>Status Team Services</th><td>${ticket.services_status}</td></tr>` : ''}
+			<tr><th>Address :</th><td>${ticket.address}</td></tr>
+            <tr><th>Issue :</th><td>${ticket.issue_case}</td></tr>
+            <tr><th>SN Unit :</th><td>${ticket.sn_unit || '-'}</td></tr>
+            <tr><th>Name & Phone User :</th><td>${ticket.customer_phone || '-'}</td></tr>
+            <tr><th>Sales Project :</th><td>${ticket.sales_name || '-'}</td></tr>
+            <tr><th>Team PTS Status :</th><td>${ticket.status}</td></tr>
+            ${ticket.services_status ? `<tr><th>Team Services Status :</th><td>${ticket.services_status}</td></tr>` : ''}
             <tr><th>Current Team</th><td>${ticket.current_team}</td></tr>
             <tr><th>Date</th><td>${ticket.date}</td></tr>
           </table>
@@ -1182,6 +1202,12 @@ Error Code: ${activityError.code}`;
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-xl p-4">
                     <div className="grid grid-cols-2 gap-4 text-sm">
+                      {selectedTicket.address && (
+                        <div className="col-span-2">
+                          <span className="text-gray-600 font-semibold">📍 Address Detail:</span>
+                          <p className="text-gray-800 font-medium">{selectedTicket.address}</p>
+                        </div>
+                      )}
                       <div>
                         <span className="text-gray-600 font-semibold">Issue Case:</span>
                         <p className="text-gray-800 font-medium">{selectedTicket.issue_case}</p>
@@ -1895,6 +1921,16 @@ Error Code: ${activityError.code}`;
                     value={newTicket.project_name} 
                     onChange={(e) => setNewTicket({...newTicket, project_name: e.target.value})} 
                     placeholder="Example: BCA Cibitung Project" 
+                    className="w-full border-2 border-blue-400 rounded-lg px-4 py-2.5 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all font-medium bg-white"
+                  />
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                  <label className="block text-sm font-bold text-gray-800 mb-2">📍 Address Detail</label>
+                  <input 
+                    type="text" 
+                    value={newTicket.address} 
+                    onChange={(e) => setNewTicket({...newTicket, address: e.target.value})} 
+                    placeholder="Example: Jl. Jend. Sudirman No. 1..." 
                     className="w-full border-2 border-blue-400 rounded-lg px-4 py-2.5 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition-all font-medium bg-white"
                   />
                 </div>

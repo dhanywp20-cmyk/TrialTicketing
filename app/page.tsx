@@ -1471,7 +1471,7 @@ Error Code: ${activityError.code}`;
         </div>
 
         {currentUser?.role !== 'guest' && (
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-purple-500">
+          <div className="bg-white/45 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-purple-500">
             <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-purple-800 text-transparent bg-clip-text">📊 Dashboard Analytics</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -1584,7 +1584,7 @@ Error Code: ${activityError.code}`;
         )}
 
         {showAccountSettings && canAccessAccountSettings && (
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-gray-400 animate-slide-down">
+          <div className="bg-white/45 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-gray-400 animate-slide-down">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">⚙️ Account Management</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -1676,7 +1676,7 @@ Error Code: ${activityError.code}`;
         )}
 
         {showGuestMapping && canAccessAccountSettings && (
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-teal-500 animate-slide-down">
+          <div className="bg-white/45 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-teal-500 animate-slide-down">
             <h2 className="text-2xl font-bold mb-4 text-teal-800">👥 Guest Mapping - Project Access</h2>
             <p className="text-gray-600 mb-6">Manage guest user access to specific projects. One guest can have access to multiple projects.</p>
             
@@ -1789,7 +1789,7 @@ Error Code: ${activityError.code}`;
         </div>
 
         {showNewTicket && canCreateTicket && (
-          <div className="bg-white/75 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-green-500 animate-slide-down">
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-green-500 animate-slide-down">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">🎫 Create New Ticket</h2>
             
             <div className="space-y-4">

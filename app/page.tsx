@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -69,6 +69,7 @@ interface GuestMapping {
 }
 
 export default function TicketingSystem() {
+  const ticketListRef = useRef<HTMLDivElement>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
@@ -165,7 +166,7 @@ export default function TicketingSystem() {
   const getNotifications = () => {
     if (!currentUser) return [];
     
-    const member = teamMembers.find(m => m.username.toLowerCase() === currentUser.username.toLowerCase());
+    const member = teamMembers.find(m => (m.username || '').toLowerCase() === (currentUser.username || '').toLowerCase());
     const assignedName = member ? member.name : currentUser.full_name;
     
     return tickets.filter(t => {
@@ -419,7 +420,7 @@ export default function TicketingSystem() {
         }
       }
 
-      const member = teamMembers.find(m => m.username.toLowerCase() === currentUser?.username.toLowerCase());
+      const member = teamMembers.find(m => (m.username || '').toLowerCase() === (currentUser?.username || '').toLowerCase());
       const teamType = member?.team_type || 'Team PTS';
 
       setLoadingMessage('Saving activity log...');
@@ -771,9 +772,50 @@ Error Code: ${activityError.code}`;
     win?.print();
   };
 
+  const exportToExcel = () => {
+    // Dashboard Analytics Summary
+    const summary = [
+      ['Dashboard Analytics'],
+      ['Total Tickets', stats.total],
+      ['Pending', stats.pending],
+      ['In Progress', stats.processing],
+      ['Solved', stats.solved],
+      [''],
+      ['Ticket Report Data']
+    ].map(row => row.join(',')).join('\n');
+
+    const headers = ['Project Name', 'Issue Case', 'Assigned To', 'Status', 'Date', 'Created By', 'Current Team', 'Services Status'];
+    const csvContent = [
+      summary,
+      headers.join(','),
+      ...tickets.map(t => [
+        t.project_name,
+        t.issue_case,
+        t.assigned_to,
+        t.status,
+        t.date,
+        t.created_by,
+        t.current_team,
+        t.services_status
+      ].map(e => `"${(e || '').toString().replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Ticket_Report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   const currentUserTeamType = useMemo(() => {
     if (!currentUser) return 'Team PTS';
-    const member = teamMembers.find(m => m.username.toLowerCase() === currentUser.username.toLowerCase());
+    const member = teamMembers.find(m => (m.username || '').toLowerCase() === (currentUser.username || '').toLowerCase());
     return member?.team_type || 'Team PTS';
   }, [currentUser, teamMembers]);
 
@@ -817,7 +859,10 @@ Error Code: ${activityError.code}`;
           acc[t.assigned_to] = (acc[t.assigned_to] || 0) + 1;
           return acc;
         }, {} as Record<string, number>)
-      ).map(([name, tickets]) => ({ name, tickets }))
+      ).map(([name, tickets]) => {
+        const member = teamMembers.find(m => m.name.trim().toLowerCase() === name.trim().toLowerCase());
+        return { name, tickets, team: member?.team_type || 'Team PTS' };
+      })
     };
   }, [tickets]);
 
@@ -1073,7 +1118,15 @@ Error Code: ${activityError.code}`;
               </p>
               <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
                 {notifications.map(ticket => (
-                  <div key={ticket.id} className={`p-3 rounded-lg border-2 ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}>
+                  <div 
+                    key={ticket.id} 
+                    onClick={() => {
+                      setSelectedTicket(ticket);
+                      setShowNotificationPopup(false);
+                      setShowTicketDetailPopup(true);
+                    }}
+                    className={`p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50 transition-colors ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}
+                  >
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-bold text-sm flex-1">{ticket.project_name}</p>
                       <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">
@@ -1476,7 +1529,7 @@ Error Code: ${activityError.code}`;
           </div>
         </div>
 
-        {currentUser?.role !== 'guest' && (
+        {(currentUser?.role === 'admin' || (currentUser?.role === 'team' && currentUserTeamType === 'Team PTS')) && (
           <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-purple-500">
             <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-purple-800 text-transparent bg-clip-text">📊 Dashboard Analytics</h2>
             
@@ -1546,6 +1599,7 @@ Error Code: ${activityError.code}`;
                           'Solved': 'Solved'
                         };
                         setFilterStatus(statusMap[data.name] || 'All');
+                        ticketListRef.current?.scrollIntoView({ behavior: 'smooth' });
                       }}
                       style={{ cursor: 'pointer' }}
                     >
@@ -1557,33 +1611,37 @@ Error Code: ${activityError.code}`;
                 <p className="text-xs text-center text-gray-500 mt-2 italic">Click on chart to filter status</p>
               </div>
 
-              <div className="chart-container bg-gradient-to-br from-white to-gray-50">
-                <h3 className="font-bold mb-4 text-gray-800 flex items-center gap-2">
-                  <span className="text-xl">📊</span>
-                  Tickets per Handler
-                </h3>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={stats.handlerData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '2px solid #6366f1',
-                        borderRadius: '12px',
-                        fontWeight: 'bold'
-                      }}
-                    />
-                    <Bar dataKey="tickets" fill="url(#colorGradient)" radius={[10, 10, 0, 0]} />
-                    <defs>
-                      <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#8b5cf6" />
-                        <stop offset="100%" stopColor="#6366f1" />
-                      </linearGradient>
-                    </defs>
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="chart-container bg-gradient-to-br from-white to-gray-50 flex flex-col gap-6">
+                <div>
+                  <h3 className="font-bold mb-2 text-gray-800 flex items-center gap-2">
+                    <span className="text-xl">📊</span>
+                    Team PTS Handlers
+                  </h3>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={stats.handlerData.filter(h => h.team === 'Team PTS')}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="tickets" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <h3 className="font-bold mb-2 text-gray-800 flex items-center gap-2">
+                    <span className="text-xl">📊</span>
+                    Team Services Handlers
+                  </h3>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={stats.handlerData.filter(h => h.team === 'Team Services')}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="tickets" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
@@ -1939,9 +1997,15 @@ Error Code: ${activityError.code}`;
           </div>
         )}
 
-        <div className="bg-white/40 backdrop-blur-md rounded-2xl shadow-2xl p-6 border-2 border-blue-250">
+        <div ref={ticketListRef} className="bg-white/40 backdrop-blur-md rounded-2xl shadow-2xl p-6 border-2 border-blue-250">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">📋 Ticket List ({filteredTickets.length})</h2>
+            <button
+              onClick={exportToExcel}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2"
+            >
+              📊 Export Report
+            </button>
           </div>
           
           {filteredTickets.length === 0 ? (

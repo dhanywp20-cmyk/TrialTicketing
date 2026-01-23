@@ -779,9 +779,13 @@ Error Code: ${activityError.code}`;
 
   const filteredTickets = useMemo(() => {
     return tickets.filter(t => {
-      const match = t.project_name.toLowerCase().includes(searchProject.toLowerCase()) ||
-                    t.issue_case.toLowerCase().includes(searchProject.toLowerCase()) ||
-                    (t.sales_name && t.sales_name.toLowerCase().includes(searchProject.toLowerCase()));
+      const projectName = t.project_name || '';
+      const issueCase = t.issue_case || '';
+      const salesName = t.sales_name || '';
+
+      const match = projectName.toLowerCase().includes(searchProject.toLowerCase()) ||
+                    issueCase.toLowerCase().includes(searchProject.toLowerCase()) ||
+                    salesName.toLowerCase().includes(searchProject.toLowerCase());
       const statusMatch = filterStatus === 'All' || t.status === filterStatus;
       
       // Team Visibility Logic

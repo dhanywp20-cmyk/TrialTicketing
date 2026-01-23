@@ -5,8 +5,8 @@ import { createClient } from '@supabase/supabase-js';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  import.meta.env.VITE_SUPABASE_URL || '',
+  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 );
 
 interface User {
@@ -737,14 +737,14 @@ Error Code: ${activityError.code}`;
         </head>
         <body>
           <h1>Ticket Report</h1>
-          <h2><th>Project Name</th>${ticket.project_name}</h2>
+          <h2>${ticket.project_name}</h2>
           <table>
             <tr><th>Issue</th><td>${ticket.issue_case}</td></tr>
             <tr><th>SN Unit</th><td>${ticket.sn_unit || '-'}</td></tr>
-            <tr><th>Name & Phone User</th><td>${ticket.customer_phone || '-'}</td></tr>
-            <tr><th>Sales Project</th><td>${ticket.sales_name || '-'}</td></tr>
-            <tr><th>Team PTS status</th><td>${ticket.status}</td></tr>
-            ${ticket.services_status ? `<tr><th>Team Services status</th><td>${ticket.services_status}</td></tr>` : ''}
+            <tr><th>Phone</th><td>${ticket.customer_phone || '-'}</td></tr>
+            <tr><th>Sales</th><td>${ticket.sales_name || '-'}</td></tr>
+            <tr><th>Status Team PTS</th><td>${ticket.status}</td></tr>
+            ${ticket.services_status ? `<tr><th>Status Team Services</th><td>${ticket.services_status}</td></tr>` : ''}
             <tr><th>Current Team</th><td>${ticket.current_team}</td></tr>
             <tr><th>Date</th><td>${ticket.date}</td></tr>
           </table>
@@ -951,7 +951,7 @@ Error Code: ${activityError.code}`;
     <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
-          <div className="bg-white/60 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
+          <div className="bg-white/70 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
             <div className="flex flex-col items-center">
               {loadingMessage.includes('✅') ? (
                 <div className="text-6xl mb-4 animate-bounce">✅</div>
@@ -989,7 +989,7 @@ Error Code: ${activityError.code}`;
                   </div>
                   <button 
                     onClick={() => setShowNotifications(false)}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 font-bold transition-all"
+                    className="text-white hover:bg-white/80 rounded-lg p-2 font-bold transition-all"
                   >
                     ✕
                   </button>
@@ -1096,7 +1096,7 @@ Error Code: ${activityError.code}`;
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <h2 className="text-2xl font-bold text-white">🏢 {selectedTicket.project_name}</h2>
-                    <span className="text-sm px-3 py-1 rounded-full bg-white/20 text-white font-bold">
+                    <span className="text-sm px-3 py-1 rounded-full bg-white/80 text-white font-bold">
                       {selectedTicket.current_team}
                     </span>
                   </div>
@@ -1105,7 +1105,7 @@ Error Code: ${activityError.code}`;
                       setShowTicketDetailPopup(false);
                       setSelectedTicket(null);
                     }}
-                    className="text-white hover:bg-white/20 rounded-lg p-2 font-bold transition-all"
+                    className="text-white hover:bg-white/80 rounded-lg p-2 font-bold transition-all"
                   >
                     ✕
                   </button>
@@ -1471,7 +1471,7 @@ Error Code: ${activityError.code}`;
         </div>
 
         {currentUser?.role !== 'guest' && (
-          <div className="bg-white/45 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-purple-500">
+          <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-purple-500">
             <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-purple-800 text-transparent bg-clip-text">📊 Dashboard Analytics</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -1584,7 +1584,14 @@ Error Code: ${activityError.code}`;
         )}
 
         {showAccountSettings && canAccessAccountSettings && (
-          <div className="bg-white/45 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-gray-400 animate-slide-down">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 border-2 border-gray-400 animate-scale-in relative">
+            <button 
+                onClick={() => setShowAccountSettings(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+                ✕
+            </button>
             <h2 className="text-2xl font-bold mb-6 text-gray-800">⚙️ Account Management</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -1673,10 +1680,18 @@ Error Code: ${activityError.code}`;
               </div>
             </div>
           </div>
+          </div>
         )}
 
         {showGuestMapping && canAccessAccountSettings && (
-          <div className="bg-white/45 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-teal-500 animate-slide-down">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 border-2 border-teal-500 animate-scale-in relative">
+            <button 
+                onClick={() => setShowGuestMapping(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+                ✕
+            </button>
             <h2 className="text-2xl font-bold mb-4 text-teal-800">👥 Guest Mapping - Project Access</h2>
             <p className="text-gray-600 mb-6">Manage guest user access to specific projects. One guest can have access to multiple projects.</p>
             
@@ -1768,6 +1783,7 @@ Error Code: ${activityError.code}`;
               )}
             </div>
           </div>
+          </div>
         )}
 
         <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-2 border-blue-500">
@@ -1789,7 +1805,14 @@ Error Code: ${activityError.code}`;
         </div>
 
         {showNewTicket && canCreateTicket && (
-          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-6 border-3 border-green-500 animate-slide-down">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6 border-3 border-green-500 animate-scale-in relative">
+            <button 
+                onClick={() => setShowNewTicket(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+                ✕
+            </button>
             <h2 className="text-2xl font-bold mb-6 text-gray-800">🎫 Create New Ticket</h2>
             
             <div className="space-y-4">
@@ -1907,9 +1930,10 @@ Error Code: ${activityError.code}`;
               </button>
             </div>
           </div>
+          </div>
         )}
 
-        <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-2xl p-6 border-2 border-blue-250">
+        <div className="bg-white/40 backdrop-blur-md rounded-2xl shadow-2xl p-6 border-2 border-blue-250">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">📋 Ticket List ({filteredTickets.length})</h2>
           </div>
@@ -1925,7 +1949,7 @@ Error Code: ${activityError.code}`;
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full backdrop-blur-sm bg-white/30">
+              <table className="w-full backdrop-blur-sm bg-white/20">
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                     <th className="px-4 py-3 text-left font-bold">Project Name</th>

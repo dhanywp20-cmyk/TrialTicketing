@@ -557,19 +557,40 @@ Error Code: ${activityError.code}`;
       return;
     }
 
+    // Determine team_type based on role
+    let finalTeamType = newUser.team_type;
+    if (newUser.role === 'guest') {
+      finalTeamType = 'Guest';
+    } else if (newUser.role === 'admin') {
+      finalTeamType = 'Team PTS';
+    }
+
     try {
-      await supabase.from('users').insert([{
+      // 1. Create User
+      const { error: userError } = await supabase.from('users').insert([{
         username: newUser.username,
         password: newUser.password,
         full_name: newUser.full_name,
         role: newUser.role,
-        team_type: newUser.team_type
+        team_type: finalTeamType
       }]);
 
-      if (newUser.team_member) {
-        await supabase.from('team_members')
-          .update({ username: newUser.username })
-          .eq('name', newUser.team_member);
+      if (userError) throw userError;
+
+      // 2. If role is 'team', create Team Member entry automatically
+      if (newUser.role === 'team') {
+        const { error: memberError } = await supabase.from('team_members').insert([{
+          name: newUser.full_name,
+          username: newUser.username,
+          role: 'Support Engineer', // Default role
+          team_type: finalTeamType,
+          photo_url: `https://ui-avatars.com/api/?name=${newUser.full_name}&background=random&color=fff&size=128`
+        }]);
+
+        if (memberError) {
+          console.error('Error creating team member:', memberError);
+          alert('User created but failed to create team member entry: ' + memberError.message);
+        }
       }
 
       setNewUser({ username: '', password: '', full_name: '', team_member: '', role: 'team', team_type: 'Team PTS' });
@@ -869,7 +890,7 @@ Error Code: ${activityError.code}`;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
         <div className="bg-white/90 p-8 rounded-2xl shadow-2xl">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mx-auto"></div>
           <p className="mt-4 font-bold">Loading...</p>
@@ -880,7 +901,7 @@ Error Code: ${activityError.code}`;
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border-4 border-red-600">
           <h1 className="text-3xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">
             Login
@@ -922,7 +943,7 @@ Error Code: ${activityError.code}`;
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
+    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
@@ -1174,7 +1195,7 @@ Error Code: ${activityError.code}`;
                             )}
                             {log.photo_url && (
                               <div className="mt-3">
-                                <p className="text-sm font-bold text-gray-700 mb-2">📷 Foto Bukti Progress:</p>
+                                <p className="text-sm font-bold text-gray-700 mb-2">📷 picture the status units:</p>
                                 <img 
                                   src={log.photo_url} 
                                   alt={log.photo_name || 'Activity photo'} 
@@ -1204,7 +1225,7 @@ Error Code: ${activityError.code}`;
                           onClick={() => setShowUpdateForm(!showUpdateForm)}
                           className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-800 font-bold transition-all flex items-center gap-2"
                         >
-                          <span>{showUpdateForm ? '🔼 Hide Form' : '🔽 Show Form'}</span>
+                          <span>{showUpdateForm ? '🔽 Hide Form' : '🔽 Show Form'}</span>
                         </button>
                       </div>
                       
@@ -1292,7 +1313,7 @@ Error Code: ${activityError.code}`;
                           )}
                           
                           <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">📷 Upload Foto Bukti Progress (JPG/PNG)</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">📷 Upload pictures the unit (JPG/PNG)</label>
                             <input 
                               type="file" 
                               accept="image/jpeg,image/jpg,image/png" 
@@ -1569,10 +1590,13 @@ Error Code: ${activityError.code}`;
                     <option value="team">Team</option>
                     <option value="guest">Guest</option>
                   </select>
-                  <select value={newUser.team_type} onChange={(e) => setNewUser({...newUser, team_type: e.target.value})} className="input-field-simple">
-                    <option value="Team PTS">Team PTS</option>
-                    <option value="Team Services">Team Services</option>
-                  </select>
+                  
+                  {newUser.role === 'team' && (
+                    <select value={newUser.team_type} onChange={(e) => setNewUser({...newUser, team_type: e.target.value})} className="input-field-simple">
+                      <option value="Team PTS">Team PTS</option>
+                      <option value="Team Services">Team Services</option>
+                    </select>
+                  )}
                   <button onClick={createUser} className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-3 rounded-xl hover:from-blue-700 hover:to-blue-900 font-bold transition-all">
                     ➕ Create Account
                   </button>

@@ -50,6 +50,7 @@ interface Ticket {
   sales_name: string;
   issue_case: string;
   description: string;
+  sn_unit?: string;
   assigned_to: string;
   status: string;
   date: string;
@@ -108,6 +109,7 @@ export default function TicketingSystem() {
     project_name: '',
     customer_phone: '',
     sales_name: '',
+    sn_unit: '',
     issue_case: '',
     description: '',
     assigned_to: '',
@@ -309,6 +311,7 @@ export default function TicketingSystem() {
         project_name: newTicket.project_name,
         customer_phone: newTicket.customer_phone || null,
         sales_name: newTicket.sales_name || null,
+        sn_unit: newTicket.sn_unit || null,
         issue_case: newTicket.issue_case,
         description: newTicket.description || null,
         assigned_to: newTicket.assigned_to,
@@ -329,6 +332,7 @@ export default function TicketingSystem() {
         project_name: '',
         customer_phone: '',
         sales_name: '',
+        sn_unit: '',
         issue_case: '',
         description: '',
         assigned_to: '',
@@ -736,6 +740,7 @@ Error Code: ${activityError.code}`;
           <h2>${ticket.project_name}</h2>
           <table>
             <tr><th>Issue</th><td>${ticket.issue_case}</td></tr>
+            <tr><th>SN Unit</th><td>${ticket.sn_unit || '-'}</td></tr>
             <tr><th>Phone</th><td>${ticket.customer_phone || '-'}</td></tr>
             <tr><th>Sales</th><td>${ticket.sales_name || '-'}</td></tr>
             <tr><th>Status Team PTS</th><td>${ticket.status}</td></tr>
@@ -1085,7 +1090,7 @@ Error Code: ${activityError.code}`;
         )}
 
         {showTicketDetailPopup && selectedTicket && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4">
+          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999] p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
               <div className="p-6 border-b-2 border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600">
                 <div className="flex justify-between items-center">
@@ -1114,6 +1119,10 @@ Error Code: ${activityError.code}`;
                       <div>
                         <span className="text-gray-600 font-semibold">Issue Case:</span>
                         <p className="text-gray-800 font-medium">{selectedTicket.issue_case}</p>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 font-semibold">SN Unit:</span>
+                        <p className="text-gray-800">{selectedTicket.sn_unit || '-'}</p>
                       </div>
                       {selectedTicket.customer_phone && (
                         <div>
@@ -1195,7 +1204,7 @@ Error Code: ${activityError.code}`;
                             )}
                             {log.photo_url && (
                               <div className="mt-3">
-                                <p className="text-sm font-bold text-gray-700 mb-2">📷 picture the status units:</p>
+                                <p className="text-sm font-bold text-gray-700 mb-2">📷 Foto Bukti Progress:</p>
                                 <img 
                                   src={log.photo_url} 
                                   alt={log.photo_name || 'Activity photo'} 
@@ -1225,7 +1234,7 @@ Error Code: ${activityError.code}`;
                           onClick={() => setShowUpdateForm(!showUpdateForm)}
                           className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-blue-800 font-bold transition-all flex items-center gap-2"
                         >
-                          <span>{showUpdateForm ? '🔽 Hide Form' : '🔽 Show Form'}</span>
+                          <span>{showUpdateForm ? '🔼 Hide Form' : '🔽 Show Form'}</span>
                         </button>
                       </div>
                       
@@ -1313,7 +1322,7 @@ Error Code: ${activityError.code}`;
                           )}
                           
                           <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">📷 Upload pictures the unit (JPG/PNG)</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">📷 Upload Foto Bukti Progress (JPG/PNG)</label>
                             <input 
                               type="file" 
                               accept="image/jpeg,image/jpg,image/png" 
@@ -1396,7 +1405,7 @@ Error Code: ${activityError.code}`;
               <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800 mb-1">
                 📋 Reminder Troubleshooting
               </h1>
-              <p className="text-gray-800 font-bold text-lg">PTS IVP</p>
+              <p className="text-gray-800 font-bold text-lg">IVP Product</p>
               <p className="text-sm text-gray-600">
                 Welcome: <span className="font-bold text-red-600">{currentUser?.full_name}</span>
                 <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-bold">
@@ -1807,7 +1816,7 @@ Error Code: ${activityError.code}`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
                   <label className="block text-sm font-bold text-gray-800 mb-2">👤 Sales Name</label>
                   <input 
@@ -1819,7 +1828,17 @@ Error Code: ${activityError.code}`;
                   />
                 </div>
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
-                  <label className="block text-sm font-bold text-gray-800 mb-2">📱 User Name & Phone</label>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">🔢 SN Unit (Optional)</label>
+                  <input 
+                    type="text" 
+                    value={newTicket.sn_unit} 
+                    onChange={(e) => setNewTicket({...newTicket, sn_unit: e.target.value})} 
+                    placeholder="Example: SN12345678" 
+                    className="w-full border-2 border-gray-400 rounded-lg px-4 py-2.5 focus:border-gray-600 focus:ring-2 focus:ring-gray-200 transition-all font-medium bg-white"
+                  />
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                  <label className="block text-sm font-bold text-gray-800 mb-2">📱 Name & Phone User</label>
                   <input 
                     type="text" 
                     value={newTicket.customer_phone} 
@@ -1890,7 +1909,7 @@ Error Code: ${activityError.code}`;
           </div>
         )}
 
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 border-2 border-blue-500">
+        <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-2xl p-6 border-2 border-blue-250">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">📋 Ticket List ({filteredTickets.length})</h2>
           </div>
@@ -1909,7 +1928,7 @@ Error Code: ${activityError.code}`;
               <table className="w-full">
                 <thead>
                   <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                    <th className="px-4 py-3 text-left font-bold">Project</th>
+                    <th className="px-4 py-3 text-left font-bold">Project Name</th>
                     <th className="px-4 py-3 text-left font-bold">Issue</th>
                     <th className="px-4 py-3 text-left font-bold">Assigned</th>
                     <th className="px-4 py-3 text-left font-bold">Status</th>

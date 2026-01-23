@@ -35,6 +35,8 @@ interface ActivityLog {
   notes: string;
   file_url: string;
   file_name: string;
+  photo_url?: string;
+  photo_name?: string;
   new_status: string;
   team_type: string;
   assigned_to_services?: boolean;
@@ -120,6 +122,7 @@ export default function TicketingSystem() {
     notes: '',
     new_status: 'Pending',
     file: null as File | null,
+    photo: null as File | null,
     assign_to_services: false,
     services_assignee: ''
   });
@@ -352,10 +355,10 @@ export default function TicketingSystem() {
     }
   };
 
-  const uploadFile = async (file: File): Promise<{ url: string; name: string }> => {
+  const uploadFile = async (file: File, folder: string = 'reports'): Promise<{ url: string; name: string }> => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}_${file.name}`;
-    const filePath = `reports/${fileName}`;
+    const filePath = `${folder}/${fileName}`;
 
     const { error } = await supabase.storage.from('ticket-photos').upload(filePath, file);
     if (error) throw error;
@@ -388,12 +391,21 @@ export default function TicketingSystem() {
       
       let fileUrl = '';
       let fileName = '';
+      let photoUrl = '';
+      let photoName = '';
 
       if (newActivity.file) {
-        setLoadingMessage('Uploading file...');
-        const result = await uploadFile(newActivity.file);
+        setLoadingMessage('Uploading PDF file...');
+        const result = await uploadFile(newActivity.file, 'reports');
         fileUrl = result.url;
         fileName = result.name;
+      }
+
+      if (newActivity.photo) {
+        setLoadingMessage('Uploading photo...');
+        const result = await uploadFile(newActivity.photo, 'photos');
+        photoUrl = result.url;
+        photoName = result.name;
       }
 
       const member = teamMembers.find(m => m.username === currentUser?.username);
@@ -409,7 +421,9 @@ export default function TicketingSystem() {
         team_type: teamType,
         assigned_to_services: newActivity.assign_to_services,
         file_url: fileUrl || null,
-        file_name: fileName || null
+        file_name: fileName || null,
+        photo_url: photoUrl || null,
+        photo_name: photoName || null
       }]);
 
       const updateData: any = {};
@@ -436,6 +450,7 @@ export default function TicketingSystem() {
         notes: '',
         new_status: 'Pending',
         file: null,
+        photo: null,
         assign_to_services: false,
         services_assignee: ''
       });
@@ -605,6 +620,7 @@ export default function TicketingSystem() {
             th { background: #f3f4f6; }
             .activity { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
             .team-badge { display: inline-block; padding: 4px 8px; background: #e5e7eb; border-radius: 4px; font-size: 12px; font-weight: bold; }
+            .photo-thumbnail { max-width: 200px; margin: 10px 0; border-radius: 8px; }
           </style>
         </head>
         <body>
@@ -627,6 +643,7 @@ export default function TicketingSystem() {
               ${log.action_taken ? `Action: ${log.action_taken}<br/>` : ''}
               Notes: ${log.notes}
               ${log.assigned_to_services ? '<br/><strong style="color: #EF4444;">→ Assigned to Team Services</strong>' : ''}
+              ${log.photo_url ? `<br/><img src="${log.photo_url}" class="photo-thumbnail" alt="Activity photo"/>` : ''}
             </div>
           `).join('') || 'No activities'}
         </body>
@@ -755,7 +772,7 @@ export default function TicketingSystem() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
         <div className="bg-white/90 p-8 rounded-2xl shadow-2xl">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mx-auto"></div>
           <p className="mt-4 font-bold">Loading...</p>
@@ -766,7 +783,7 @@ export default function TicketingSystem() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
         <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md border-4 border-red-600">
           <h1 className="text-3xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">
             Login
@@ -808,7 +825,7 @@ export default function TicketingSystem() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
+    <div className="min-h-screen p-4 md:p-6 bg-cover bg-center bg-fixed bg-no-repeat" style={{ backgroundImage: 'url(/images/Background.jpg)' }}>
       {showLoadingPopup && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border-4 border-blue-500 animate-scale-in">
@@ -1058,6 +1075,17 @@ export default function TicketingSystem() {
                                 <p className="text-sm font-bold text-red-800">→ Ticket assigned to Team Services</p>
                               </div>
                             )}
+                            {log.photo_url && (
+                              <div className="mt-3">
+                                <p className="text-sm font-bold text-gray-700 mb-2">📷 Foto Bukti Progress:</p>
+                                <img 
+                                  src={log.photo_url} 
+                                  alt={log.photo_name || 'Activity photo'} 
+                                  className="max-w-md w-full rounded-lg border-2 border-gray-300 shadow-md cursor-pointer hover:scale-105 transition-transform"
+                                  onClick={() => window.open(log.photo_url, '_blank')}
+                                />
+                              </div>
+                            )}
                             {log.file_url && (
                               <a href={log.file_url} download={log.file_name} className="file-download">
                                 📄 {log.file_name || 'Download Report'}
@@ -1166,6 +1194,30 @@ export default function TicketingSystem() {
                             </div>
                           )}
                           
+                          <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">📷 Upload Foto Bukti Progress (JPG/PNG)</label>
+                            <input 
+                              type="file" 
+                              accept="image/jpeg,image/jpg,image/png" 
+                              onChange={(e) => setNewActivity({...newActivity, photo: e.target.files?.[0] || null})} 
+                              className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 transition-all"
+                            />
+                            {newActivity.photo && (
+                              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="flex items-center gap-2 text-sm mb-2">
+                                  <span className="text-green-700 font-bold">✓ Photo selected:</span>
+                                  <span className="text-gray-800 font-semibold">{newActivity.photo.name}</span>
+                                  <span className="text-gray-600">({(newActivity.photo.size / 1024).toFixed(2)} KB)</span>
+                                </div>
+                                <img 
+                                  src={URL.createObjectURL(newActivity.photo)} 
+                                  alt="Preview" 
+                                  className="max-w-xs rounded-lg border-2 border-green-300"
+                                />
+                              </div>
+                            )}
+                          </div>
+
                           <div className="bg-white rounded-xl p-4 border border-gray-300 shadow-sm">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">📎 Upload Report File (PDF)</label>
                             <input 
@@ -1463,27 +1515,31 @@ export default function TicketingSystem() {
 
             <div className="bg-white rounded-xl p-5 border-2 border-gray-300 shadow-sm">
               <h3 className="font-bold mb-4 text-gray-800">👥 User List</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {users.map(u => (
-                  <div key={u.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <p className="font-bold text-sm">{u.full_name}</p>
-                    <p className="text-xs text-gray-600">@{u.username}</p>
-                    <div className="flex flex-col gap-1 mt-1">
-                      <span className={`text-xs px-2 py-1 rounded text-center ${
-                        u.role === 'admin' ? 'bg-red-100 text-red-800' : 
-                        u.role === 'team' ? 'bg-blue-100 text-blue-800' : 
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {u.role === 'admin' ? 'Admin' : u.role === 'team' ? 'Team' : 'Guest'}
-                      </span>
-                      {u.team_type && (
-                        <span className="text-xs px-2 py-1 rounded text-center bg-purple-100 text-purple-800">
-                          {u.team_type}
+              <div className="max-h-96 overflow-y-auto">
+                <div className="space-y-2">
+                  {users.map(u => (
+                    <div key={u.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200 flex justify-between items-center">
+                      <div>
+                        <p className="font-bold text-sm">{u.full_name}</p>
+                        <p className="text-xs text-gray-600">@{u.username}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          u.role === 'admin' ? 'bg-red-100 text-red-800' : 
+                          u.role === 'team' ? 'bg-blue-100 text-blue-800' : 
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {u.role === 'admin' ? 'Admin' : u.role === 'team' ? 'Team' : 'Guest'}
                         </span>
-                      )}
+                        {u.team_type && (
+                          <span className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-800">
+                            {u.team_type}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1728,41 +1784,73 @@ export default function TicketingSystem() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTickets.map((ticket) => (
-                <div
-                  key={ticket.id}
-                  className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-5 border-2 border-blue-300 hover:shadow-2xl transition-all transform hover:scale-[1.02]"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-lg text-gray-800 mb-1">🏢 {ticket.project_name}</h3>
-                      <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">
-                        {ticket.current_team}
-                      </span>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.status]}`}>
-                      {ticket.status}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-1 text-sm mb-4">
-                    <p className="text-gray-700"><span className="font-semibold">Issue:</span> {ticket.issue_case}</p>
-                    <p className="text-gray-600"><span className="font-semibold">Assigned:</span> {ticket.assigned_to}</p>
-                    <p className="text-gray-600"><span className="font-semibold">Date:</span> {new Date(ticket.date).toLocaleDateString('id-ID')}</p>
-                  </div>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedTicket(ticket);
-                      setShowTicketDetailPopup(true);
-                    }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-2 rounded-lg hover:from-blue-700 hover:to-blue-900 font-bold transition-all"
-                  >
-                    👁️ View Details
-                  </button>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <th className="px-4 py-3 text-left font-bold">Project</th>
+                    <th className="px-4 py-3 text-left font-bold">Issue</th>
+                    <th className="px-4 py-3 text-left font-bold">Assigned</th>
+                    <th className="px-4 py-3 text-left font-bold">Status</th>
+                    <th className="px-4 py-3 text-center font-bold">Activity</th>
+                    <th className="px-4 py-3 text-center font-bold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTickets.map((ticket, index) => (
+                    <tr 
+                      key={ticket.id} 
+                      className={`border-b border-gray-200 hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-bold text-gray-800">{ticket.project_name}</div>
+                        <div className="text-xs text-gray-500">{new Date(ticket.date).toLocaleDateString('id-ID')}</div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{ticket.issue_case}</td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm font-semibold text-gray-800">{ticket.assigned_to}</div>
+                        <div className="text-xs text-purple-600">{ticket.current_team}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.status]}`}>
+                          {ticket.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {ticket.activity_logs && ticket.activity_logs.length > 0 ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="text-lg">📝</span>
+                            <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                              {ticket.activity_logs.length}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex gap-2 justify-center">
+                          <button
+                            onClick={() => {
+                              setSelectedTicket(ticket);
+                              setShowTicketDetailPopup(true);
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                          >
+                            👁️ View
+                          </button>
+                          <button
+                            onClick={() => exportToPDF(ticket)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                          >
+                            📄 PDF
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -1829,5 +1917,3 @@ export default function TicketingSystem() {
     </div>
   );
 }
-
-

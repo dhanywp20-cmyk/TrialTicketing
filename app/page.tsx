@@ -165,7 +165,7 @@ export default function TicketingSystem() {
   const getNotifications = () => {
     if (!currentUser) return [];
     
-    const member = teamMembers.find(m => m.username === currentUser.username);
+    const member = teamMembers.find(m => m.username.toLowerCase() === currentUser.username.toLowerCase());
     const assignedName = member ? member.name : currentUser.full_name;
     
     return tickets.filter(t => {
@@ -419,7 +419,7 @@ export default function TicketingSystem() {
         }
       }
 
-      const member = teamMembers.find(m => m.username === currentUser?.username);
+      const member = teamMembers.find(m => m.username.toLowerCase() === currentUser?.username.toLowerCase());
       const teamType = member?.team_type || 'Team PTS';
 
       setLoadingMessage('Saving activity log...');
@@ -561,6 +561,8 @@ Error Code: ${activityError.code}`;
       return;
     }
 
+    const lowerUsername = newUser.username.toLowerCase();
+
     // Determine team_type based on role
     let finalTeamType = newUser.team_type;
     if (newUser.role === 'guest') {
@@ -572,7 +574,7 @@ Error Code: ${activityError.code}`;
     try {
       // 1. Create User
       const { error: userError } = await supabase.from('users').insert([{
-        username: newUser.username,
+        username: lowerUsername,
         password: newUser.password,
         full_name: newUser.full_name,
         role: newUser.role,
@@ -585,7 +587,7 @@ Error Code: ${activityError.code}`;
       if (newUser.role === 'team') {
         const { error: memberError } = await supabase.from('team_members').insert([{
           name: newUser.full_name,
-          username: newUser.username,
+          username: lowerUsername,
           role: 'Support Engineer', // Default role
           team_type: finalTeamType,
           photo_url: `https://ui-avatars.com/api/?name=${newUser.full_name}&background=random&color=fff&size=128`
@@ -771,7 +773,7 @@ Error Code: ${activityError.code}`;
 
   const currentUserTeamType = useMemo(() => {
     if (!currentUser) return 'Team PTS';
-    const member = teamMembers.find(m => m.username === currentUser.username);
+    const member = teamMembers.find(m => m.username.toLowerCase() === currentUser.username.toLowerCase());
     return member?.team_type || 'Team PTS';
   }, [currentUser, teamMembers]);
 
@@ -1091,7 +1093,7 @@ Error Code: ${activityError.code}`;
 
         {showTicketDetailPopup && selectedTicket && (
           <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white/75 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
+            <div className="bg-white/85 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
               <div className="p-6 border-b-2 border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
@@ -1105,7 +1107,7 @@ Error Code: ${activityError.code}`;
                       setShowTicketDetailPopup(false);
                       setSelectedTicket(null);
                     }}
-                    className="text-white hover:bg-white/80 rounded-lg p-2 font-bold transition-all"
+                    className="text-white hover:bg-white/90 rounded-lg p-2 font-bold transition-all"
                   >
                     ✕
                   </button>
@@ -2081,4 +2083,5 @@ Error Code: ${activityError.code}`;
     </div>
   );
 }
+
 

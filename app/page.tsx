@@ -1039,7 +1039,7 @@ Error Code: ${activityError.code}`;
                         </div>
                         <div className="flex justify-between items-center pt-3 border-t border-gray-300">
                           <span className="text-xs text-gray-500">
-                            📅 {new Date(ticket.created_at).toLocaleDateString('id-ID')}
+                            📅 {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('id-ID') : '-'}
                           </span>
                           <span className="text-sm text-blue-600 font-semibold">Click to view details →</span>
                         </div>
@@ -1148,7 +1148,7 @@ Error Code: ${activityError.code}`;
                       </div>
                       <div>
                         <span className="text-gray-600 font-semibold">Date:</span>
-                        <p className="text-gray-800">{new Date(selectedTicket.date).toLocaleDateString('id-ID')}</p>
+                        <p className="text-gray-800">{selectedTicket.date ? new Date(selectedTicket.date).toLocaleDateString('id-ID') : '-'}</p>
                       </div>
                       <div>
                         <span className="text-gray-600 font-semibold">Status Team PTS:</span>
@@ -1974,7 +1974,7 @@ Error Code: ${activityError.code}`;
                     >
                       <td className="px-4 py-3">
                         <div className="font-bold text-gray-800">{ticket.project_name}</div>
-                        <div className="text-xs text-gray-500">{new Date(ticket.date).toLocaleDateString('id-ID')}</div>
+                        <div className="text-xs text-gray-500">{ticket.date ? new Date(ticket.date).toLocaleDateString('id-ID') : '-'}</div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{ticket.issue_case}</td>
                       <td className="px-4 py-3">

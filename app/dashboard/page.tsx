@@ -63,7 +63,7 @@ export default function Dashboard() {
       color: 'from-red-500 to-red-700',
       items: [
         {
-          name: 'Buka Sistem Ticketing',
+          name: 'Sistem Ticketing',
           url: '/ticketing',
           icon: '🔧',
           external: false
@@ -97,7 +97,7 @@ export default function Dashboard() {
     },
     {
       title: 'Database PTS',
-      icon: '💾',
+      icon: '🛢️',
       color: 'from-purple-500 to-purple-700',
       items: [
         {
@@ -266,7 +266,7 @@ export default function Dashboard() {
           {menuItems.map((menu, index) => (
             <div
               key={index}
-              className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border-3 border-gray-300 overflow-hidden hover:shadow-2xl transition-all transform hover:scale-105 animate-fade-in"
+              className="bg-white/50 backdrop-blur-md rounded-2xl shadow-xl border-3 border-gray-300 overflow-hidden hover:shadow-2xl transition-all transform hover:scale-105 animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Menu Header */}
@@ -304,10 +304,6 @@ export default function Dashboard() {
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-300">
               <p className="text-sm text-gray-600 mb-1">User Role</p>
               <p className="text-xl font-bold text-blue-800">{currentUser?.role?.toUpperCase()}</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-300">
-              <p className="text-sm text-gray-600 mb-1">Total Menu</p>
-              <p className="text-xl font-bold text-green-800">{menuItems.length} Sistem</p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-300">
               <p className="text-sm text-gray-600 mb-1">Status</p>

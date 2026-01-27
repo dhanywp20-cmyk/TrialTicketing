@@ -97,12 +97,12 @@ export default function Dashboard() {
     },
     {
       title: 'Database PTS',
-      icon: '🛢️',
+      icon: '🗃️',
       color: 'from-purple-500 to-purple-700',
       items: [
         {
           name: 'Akses Database',
-          url: 'https://www.indovisual.com',
+          url: 'https://1drv.ms/f/c/25d404c0b5ee2b43/IgBDK-61wATUIIAlAgQAAAAAARPyRqbKPJAap5G_Ol5NmA8?e=GWkGRg',
           icon: '🔗',
           external: true
         }
@@ -114,11 +114,17 @@ export default function Dashboard() {
       color: 'from-orange-500 to-orange-700',
       items: [
         {
-          name: 'Kelola Unit',
-          url: 'https://www.indovisual.com',
-          icon: '📦',
+          name: 'Input Form',
+          url: 'https://docs.google.com/forms/d/e/1FAIpQLSfnfNZ1y96xei0KdMDewxGRr2nALwA0ZLW-kKPyGh5_YhK4HA/viewform',
+          icon: '✍️',
           external: true
-        }
+        },
+        {
+          name: 'View Database',
+          url: 'https://docs.google.com/spreadsheets/d/1AO9-kBblzEst-z2_wGnMQe6EEK8CgwY3ABI9otG1Y8s/edit?usp=sharing',
+          icon: '📊',
+          external: true
+        },
       ]
     }
   ];

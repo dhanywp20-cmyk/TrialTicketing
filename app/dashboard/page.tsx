@@ -233,7 +233,7 @@ export default function Dashboard() {
          style={{ backgroundImage: 'url(/IVP_Background.png)' }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-8 border-4 border-red-600">
+        <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-2xl p-6 mb-8 border-4 border-red-600">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800 mb-2">
@@ -266,7 +266,7 @@ export default function Dashboard() {
           {menuItems.map((menu, index) => (
             <div
               key={index}
-              className="bg-white/50 backdrop-blur-md rounded-2xl shadow-xl border-3 border-gray-300 overflow-hidden hover:shadow-2xl transition-all transform hover:scale-105 animate-fade-in"
+              className="bg-white/40 backdrop-blur-md rounded-2xl shadow-xl border-3 border-gray-300 overflow-hidden hover:shadow-2xl transition-all transform hover:scale-105 animate-fade-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Menu Header */}
@@ -295,21 +295,6 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Quick Stats - Optional */}
-        <div className="mt-8 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl p-6 border-3 border-gray-300">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">ℹ️ Informasi Sistem</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-300">
-              <p className="text-sm text-gray-600 mb-1">User Role</p>
-              <p className="text-xl font-bold text-blue-800">{currentUser?.role?.toUpperCase()}</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border-2 border-purple-300">
-              <p className="text-sm text-gray-600 mb-1">Status</p>
-              <p className="text-xl font-bold text-purple-800">🟢 Aktif</p>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

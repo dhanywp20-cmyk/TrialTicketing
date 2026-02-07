@@ -153,6 +153,105 @@ export default function TicketingSystem() {
     'Solved': 'bg-green-100 text-green-800 border-green-400'
   };
 
+  // ===== FUNGSI BARU: HITUNG JAM KERJA =====
+  /**
+   * Menghitung jumlah jam kerja antara dua waktu
+   * Jam kerja: Senin-Jumat, 08:00-17:00 (9 jam per hari)
+   */
+  const calculateWorkingHours = (startDate: Date, endDate: Date): number => {
+    let totalHours = 0;
+    let currentDate = new Date(startDate);
+    
+    while (currentDate < endDate) {
+      const dayOfWeek = currentDate.getDay(); // 0=Minggu, 6=Sabtu
+      
+      // Skip weekend (Sabtu & Minggu)
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const startHour = 8;
+        const endHour = 17;
+        
+        // Jam mulai hari ini
+        const todayStart = new Date(currentDate);
+        todayStart.setHours(startHour, 0, 0, 0);
+        
+        // Jam selesai hari ini
+        const todayEnd = new Date(currentDate);
+        todayEnd.setHours(endHour, 0, 0, 0);
+        
+        // Tentukan waktu efektif mulai
+        const effectiveStart = currentDate < todayStart ? todayStart : currentDate;
+        
+        // Tentukan waktu efektif selesai
+        const effectiveEnd = endDate < todayEnd ? endDate : todayEnd;
+        
+        // Hitung jam jika masih dalam jam kerja
+        if (effectiveStart < effectiveEnd && effectiveStart >= todayStart && effectiveStart < todayEnd) {
+          const hoursToday = (effectiveEnd.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60);
+          totalHours += hoursToday;
+        }
+      }
+      
+      // Pindah ke hari berikutnya
+      currentDate.setDate(currentDate.getDate() + 1);
+      currentDate.setHours(8, 0, 0, 0); // Set ke jam 8 pagi
+    }
+    
+    return totalHours;
+  };
+
+  /**
+   * Cek apakah tiket sudah melewati batas waktu 2 hari jam kerja (18 jam)
+   */
+  const isOverdue = (ticket: Ticket): boolean => {
+    if (ticket.status !== 'Pending' && ticket.status !== 'In Progress') {
+      return false;
+    }
+    
+    const createdDate = new Date(ticket.created_at);
+    const now = new Date();
+    
+    const workingHours = calculateWorkingHours(createdDate, now);
+    const maxWorkingHours = 2 * 9; // 2 hari x 9 jam = 18 jam
+    
+    return workingHours > maxWorkingHours;
+  };
+
+  /**
+   * Hitung sisa waktu dalam jam kerja
+   */
+  const getRemainingWorkingHours = (ticket: Ticket): number => {
+    if (ticket.status !== 'Pending' && ticket.status !== 'In Progress') {
+      return 0;
+    }
+    
+    const createdDate = new Date(ticket.created_at);
+    const now = new Date();
+    
+    const workingHours = calculateWorkingHours(createdDate, now);
+    const maxWorkingHours = 2 * 9; // 18 jam
+    
+    return Math.max(0, maxWorkingHours - workingHours);
+  };
+
+  /**
+   * Format waktu tersisa menjadi string yang mudah dibaca
+   */
+  const formatRemainingTime = (hours: number): string => {
+    if (hours <= 0) return 'Overdue!';
+    
+    const days = Math.floor(hours / 9);
+    const remainingHours = Math.floor(hours % 9);
+    const minutes = Math.floor((hours % 1) * 60);
+    
+    if (days > 0) {
+      return `${days}d ${remainingHours}h`;
+    } else if (remainingHours > 0) {
+      return `${remainingHours}h ${minutes}m`;
+    } else {
+      return `${minutes}m`;
+    }
+  };
+
   const checkSessionTimeout = () => {
     if (loginTime) {
       const now = Date.now();
@@ -953,6 +1052,18 @@ Error Code: ${activityError.code}`;
     return () => clearInterval(interval);
   }, [loginTime]);
 
+  // Auto-refresh notifications setiap 1 menit untuk update timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (currentUser && isLoggedIn) {
+        const notifs = getNotifications();
+        setNotifications(notifs);
+      }
+    }, 60000); // Refresh setiap 1 menit
+
+    return () => clearInterval(interval);
+  }, [currentUser, tickets, teamMembers, isLoggedIn]);
+
   useEffect(() => {
     if (currentUser?.role === 'admin') {
       fetchGuestMappings();
@@ -1083,40 +1194,73 @@ Error Code: ${activityError.code}`;
               ) : (
                 <div className="max-h-[calc(80vh-120px)] overflow-y-auto p-4">
                   <div className="space-y-3">
-                    {notifications.map(ticket => (
-                      <div
-                        key={ticket.id}
-                        onClick={() => {
-                          setSelectedTicket(ticket);
-                          setShowNotifications(false);
-                          setShowTicketDetailPopup(true);
-                        }}
-                        className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-300 cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <p className="font-bold text-lg text-gray-800">{ticket.project_name}</p>
-                              <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-800 font-bold">
-                                {ticket.current_team}
+                    {notifications.map(ticket => {
+                      const overdue = isOverdue(ticket);
+                      const remainingHours = getRemainingWorkingHours(ticket);
+                      
+                      return (
+                        <div
+                          key={ticket.id}
+                          onClick={() => {
+                            setSelectedTicket(ticket);
+                            setShowNotifications(false);
+                            setShowTicketDetailPopup(true);
+                          }}
+                          className={`rounded-xl p-4 border-2 cursor-pointer hover:scale-[1.02] transition-all ${
+                            overdue 
+                              ? 'bg-red-600 border-red-700 shadow-xl shadow-red-500/50' 
+                              : 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-300 hover:shadow-lg'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <p className={`font-bold text-lg ${overdue ? 'text-white' : 'text-gray-800'}`}>
+                                  {ticket.project_name}
+                                </p>
+                                <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                                  overdue 
+                                    ? 'bg-white text-red-600' 
+                                    : 'bg-purple-100 text-purple-800'
+                                }`}>
+                                  {ticket.current_team}
+                                </span>
+                              </div>
+                              <p className={`text-sm mt-1 ${overdue ? 'text-red-100' : 'text-gray-600'}`}>
+                                {ticket.issue_case}
+                              </p>
+                            </div>
+                            <div className="ml-3 flex flex-col gap-1">
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${
+                                overdue 
+                                  ? 'bg-white text-red-600 border-white' 
+                                  : statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]
+                              }`}>
+                                {currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{ticket.issue_case}</p>
                           </div>
-                          <div className="ml-3 flex flex-col gap-1">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}>
-                              {currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}
+                          <div className={`flex justify-between items-center pt-3 border-t ${overdue ? 'border-white/30' : 'border-gray-300'}`}>
+                            <span className={`text-xs ${overdue ? 'text-white' : 'text-gray-500'}`}>
+                              📅 {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('id-ID') : '-'}
                             </span>
+                            {overdue ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm bg-white text-red-600 px-3 py-1 rounded-full font-bold animate-pulse">
+                                  ⚠️ OVERDUE!
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs bg-yellow-200 text-yellow-900 px-3 py-1 rounded-full font-bold">
+                                  ⏱️ {formatRemainingTime(remainingHours)} left
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <div className="flex justify-between items-center pt-3 border-t border-gray-300">
-                          <span className="text-xs text-gray-500">
-                            📅 {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('id-ID') : '-'}
-                          </span>
-                          <span className="text-sm text-blue-600 font-semibold">Click to view details →</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -2171,6 +2315,17 @@ Error Code: ${activityError.code}`;
         .file-download {
           @apply inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-200 transition-all mt-2;
         }
+        @keyframes pulse-red {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+          }
+          50% {
+            box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+          }
+        }
+        .animate-pulse-red {
+          animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
         @keyframes scale-in {
           from {
             opacity: 0;
@@ -2201,4 +2356,3 @@ Error Code: ${activityError.code}`;
     </div>
   );
 }
-

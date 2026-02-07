@@ -1287,27 +1287,62 @@ Error Code: ${activityError.code}`;
               <p className="text-gray-700 mb-4">
                 You have <strong className="text-red-600">{notifications.length}</strong> tickets that need attention:
               </p>
-              <div className="max-h-60 overflow-y-auto space-y-2 mb-4">
-                {notifications.map(ticket => (
-                  <div 
-                    key={ticket.id} 
-                    onClick={() => {
-                      setSelectedTicket(ticket);
-                      setShowNotificationPopup(false);
-                      setShowTicketDetailPopup(true);
-                    }}
-                    className={`p-3 rounded-lg border-2 cursor-pointer hover:bg-gray-50 transition-colors ${statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status]}`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-bold text-sm flex-1">{ticket.project_name}</p>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-bold">
-                        {ticket.current_team}
-                      </span>
+              <div className="max-h-96 overflow-y-auto space-y-2 mb-4">
+                {notifications.map(ticket => {
+                  const overdue = isOverdue(ticket);
+                  const remainingHours = getRemainingWorkingHours(ticket);
+                  
+                  return (
+                    <div 
+                      key={ticket.id} 
+                      onClick={() => {
+                        setSelectedTicket(ticket);
+                        setShowNotificationPopup(false);
+                        setShowTicketDetailPopup(true);
+                      }}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        overdue 
+                          ? 'bg-red-600 border-red-700 hover:bg-red-700' 
+                          : statusColors[currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status] + ' hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="flex-1">
+                          <p className={`font-bold text-sm ${overdue ? 'text-white' : 'text-gray-800'}`}>
+                            {ticket.project_name}
+                          </p>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-bold inline-block mt-1 ${
+                            overdue 
+                              ? 'bg-white text-red-600' 
+                              : 'bg-purple-100 text-purple-800'
+                          }`}>
+                            {ticket.current_team}
+                          </span>
+                        </div>
+                        {overdue ? (
+                          <span className="text-xs bg-white text-red-600 px-2 py-1 rounded-full font-bold whitespace-nowrap animate-pulse">
+                            ⚠️ OVERDUE
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-yellow-200 text-yellow-900 px-2 py-1 rounded-full font-bold whitespace-nowrap">
+                            ⏱️ {formatRemainingTime(remainingHours)}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-xs mt-1 ${overdue ? 'text-red-100' : 'text-gray-600'}`}>
+                        {ticket.issue_case}
+                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className={`text-xs font-semibold ${overdue ? 'text-white' : 'text-gray-700'}`}>
+                          {currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}
+                        </span>
+                        <span className={`text-xs ${overdue ? 'text-red-100' : 'text-gray-500'}`}>
+                          📅 {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('id-ID') : '-'}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-xs">{ticket.issue_case}</p>
-                    <span className="text-xs font-semibold">{currentUserTeamType === 'Team Services' ? (ticket.services_status || 'Pending') : ticket.status}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <button
                 onClick={() => setShowNotificationPopup(false)}
@@ -2213,70 +2248,110 @@ Error Code: ${activityError.code}`;
                     <th className="px-4 py-3 text-left font-bold">Issue</th>
                     <th className="px-4 py-3 text-left font-bold">Assigned</th>
                     <th className="px-4 py-3 text-left font-bold">Status</th>
+                    <th className="px-4 py-3 text-center font-bold">Timer</th>
                     <th className="px-4 py-3 text-center font-bold">Activity</th>
                     <th className="px-4 py-3 text-center font-bold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTickets.map((ticket, index) => (
-                    <tr 
-                      key={ticket.id} 
-                      className={`border-b border-white/50 hover:bg-blue-500/45 transition-colors ${index % 2 === 0 ? 'bg-white/45' : 'bg-gray-45'}`}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="font-bold text-gray-800">{ticket.project_name}</div>
-                        <div className="text-xs text-gray-500">{ticket.date ? new Date(ticket.date).toLocaleDateString('id-ID') : '-'}</div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{ticket.issue_case}</td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-semibold text-gray-800">{ticket.assigned_to}</div>
-                        <div className="text-xs text-purple-600">{ticket.current_team}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col gap-1 items-start">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.status]}`}>
-                            {ticket.status}
-                          </span>
-                          {ticket.services_status && (
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.services_status]}`}>
-                              Services: {ticket.services_status}
+                  {filteredTickets.map((ticket, index) => {
+                    const overdue = isOverdue(ticket);
+                    const remainingHours = getRemainingWorkingHours(ticket);
+                    const isPendingOrProgress = ticket.status === 'Pending' || ticket.status === 'In Progress';
+                    
+                    return (
+                      <tr 
+                        key={ticket.id} 
+                        className={`border-b border-white/50 hover:bg-blue-500/45 transition-colors ${
+                          overdue 
+                            ? 'bg-red-100/60' 
+                            : index % 2 === 0 ? 'bg-white/45' : 'bg-gray-45'
+                        }`}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="font-bold text-gray-800">{ticket.project_name}</div>
+                          <div className="text-xs text-gray-500">{ticket.date ? new Date(ticket.date).toLocaleDateString('id-ID') : '-'}</div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">{ticket.issue_case}</td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-semibold text-gray-800">{ticket.assigned_to}</div>
+                          <div className="text-xs text-purple-600">{ticket.current_team}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${
+                              overdue && isPendingOrProgress
+                                ? 'bg-red-600 text-white border-red-700'
+                                : statusColors[ticket.status]
+                            }`}>
+                              {ticket.status}
                             </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {ticket.activity_logs && ticket.activity_logs.length > 0 ? (
-                          <div className="flex items-center justify-center gap-1">
-                            <span className="text-lg">📝</span>
-                            <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                              {ticket.activity_logs.length}
-                            </span>
+                            {ticket.services_status && (
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${statusColors[ticket.services_status]}`}>
+                                Services: {ticket.services_status}
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <span className="text-gray-400 text-sm">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex gap-2 justify-center">
-                          <button
-                            onClick={() => {
-                              setSelectedTicket(ticket);
-                              setShowTicketDetailPopup(true);
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
-                          >
-                            👁️ View
-                          </button>
-                          <button
-                            onClick={() => exportToPDF(ticket)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
-                          >
-                            📄 PDF
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {isPendingOrProgress ? (
+                            overdue ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="bg-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold animate-pulse shadow-lg">
+                                  ⚠️ OVERDUE
+                                </span>
+                                <span className="text-xs text-red-600 font-semibold">
+                                  Action Required!
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className="bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-full text-xs font-bold border border-yellow-400">
+                                  ⏱️ {formatRemainingTime(remainingHours)}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  remaining
+                                </span>
+                              </div>
+                            )
+                          ) : (
+                            <span className="text-gray-400 text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {ticket.activity_logs && ticket.activity_logs.length > 0 ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <span className="text-lg">📝</span>
+                              <span className="bg-blue-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                                {ticket.activity_logs.length}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-sm">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={() => {
+                                setSelectedTicket(ticket);
+                                setShowTicketDetailPopup(true);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                            >
+                              👁️ View
+                            </button>
+                            <button
+                              onClick={() => exportToPDF(ticket)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                            >
+                              📄 PDF
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
